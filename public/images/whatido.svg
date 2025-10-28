@@ -1,0 +1,22 @@
+<svg width="400" height="120" xmlns="http://www.w3.org/2000/svg">
+  <!-- 定义渐变色彩 -->
+  <defs>
+    <!-- 可信之源 整体渐变 -->
+    <linearGradient id="gradText" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6a11cb" />
+      <stop offset="15%" stop-color="#2575fc" />
+      <stop offset="30%" stop-color="#00bfa5" />
+      <stop offset="45%" stop-color="#ffea00" />
+      <stop offset="60%" stop-color="#ff8f00" />
+      <stop offset="75%" stop-color="#e91e63" />
+      <stop offset="90%" stop-color="#6a11cb" />
+    </linearGradient>
+  </defs>
+
+  <!-- 彩色文字 - 可信之源 -->
+  <text x="50%" y="50%" font-family="Arial, 'Microsoft YaHei', 'Heiti SC', sans-serif" 
+        font-size="48" font-weight="bold" text-anchor="middle" dominant-baseline="middle"
+        fill="url(#gradText)">
+    可信之源
+  </text>
+</svg>

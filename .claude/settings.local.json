@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(npm run dev)",
+      "Bash(dir:*)",
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(pnpm add:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(move \"src\\app\\home.tsx\" \"src\\app\\home\\page.tsx\")",
+      "Bash(mv \"src/app/home.tsx\" \"src/app/home/page.tsx\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
