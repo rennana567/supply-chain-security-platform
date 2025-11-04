@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import * as echarts from 'echarts';
+import { useEffect, useRef, useState } from 'react';
 import type { RepoMetric } from '@/data/mockRepoData';
+import SkeletonLoader from './SkeletonLoader';
 
 interface RepoChartProps {
   metric: RepoMetric;
@@ -12,18 +12,33 @@ interface RepoChartProps {
 export function RepoChart({ metric, height = 400 }: RepoChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!chartRef.current) return;
 
-    // 初始化图表
-    chartInstance.current = echarts.init(chartRef.current);
+    const initChart = async () => {
+      try {
+        setIsLoading(true);
+        // 动态导入ECharts
+        const echartsLib = await import('echarts');
 
-    // 根据图表类型生成配置
-    const option = generateChartOption(metric);
+        // 初始化图表
+        chartInstance.current = echartsLib.init(chartRef.current);
 
-    // 设置配置
-    chartInstance.current.setOption(option);
+        // 根据图表类型生成配置
+        const option = generateChartOption(metric);
+
+        // 设置配置
+        chartInstance.current.setOption(option);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Failed to initialize chart:', error);
+        setIsLoading(false);
+      }
+    };
+
+    initChart();
 
     // 响应式处理
     const handleResize = () => {
@@ -62,7 +77,7 @@ export function RepoChart({ metric, height = 400 }: RepoChartProps) {
 
     const series = projects.map(project => ({
       name: project,
-      type: 'line',
+      type: 'line' as const,
       data: data.buckets.map(bucket => ({
         name: bucket.bucket,
         value: bucket[project] || 0
@@ -74,10 +89,17 @@ export function RepoChart({ metric, height = 400 }: RepoChartProps) {
         width: 3
       },
       areaStyle: projects.length === 1 ? {
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: 'rgba(58, 77, 233, 0.3)' },
-          { offset: 1, color: 'rgba(58, 77, 233, 0.1)' }
-        ])
+        color: {
+          type: 'linear' as const,
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: 'rgba(58, 77, 233, 0.3)' },
+            { offset: 1, color: 'rgba(58, 77, 233, 0.1)' }
+          ]
+        }
       } : undefined
     }));
 
@@ -164,13 +186,20 @@ export function RepoChart({ metric, height = 400 }: RepoChartProps) {
 
     const series = projects.map(project => ({
       name: project,
-      type: 'bar',
+      type: 'bar' as const,
       data: data.buckets.map(bucket => bucket[project] || 0),
       itemStyle: {
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: '#3a4de9' },
-          { offset: 1, color: '#1e3a8a' }
-        ])
+        color: {
+          type: 'linear' as const,
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: '#3a4de9' },
+            { offset: 1, color: '#1e3a8a' }
+          ]
+        }
       }
     }));
 
@@ -305,12 +334,16 @@ export function RepoChart({ metric, height = 400 }: RepoChartProps) {
           },
           data: data.buckets.map(bucket => ({
             name: bucket.bucket,
-            value: bucket[projects[0]] || 0
+            value: Number(bucket[projects[0]]) || 0
           }))
         }
       ]
     };
   };
+
+  if (isLoading) {
+    return <SkeletonLoader type="chart" />;
+  }
 
   return (
     <div

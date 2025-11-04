@@ -129,3 +129,36 @@ body {
   }
 }
 
+/* 图表增强样式 */
+.chart-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(91, 141, 239, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.chart-glow {
+  filter: drop-shadow(0 0 8px rgba(91, 141, 239, 0.15));
+}
+
+/* 3D 图表容器 */
+.chart-3d-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.chart-3d-container:hover {
+  transform: translateZ(10px);
+  transition: transform 0.3s ease;
+}
+

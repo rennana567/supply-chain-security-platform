@@ -93,42 +93,16 @@ export default function Dashboard() {
               />
 
               <ModuleEntryCard
-                title="许可证合规性检测"
-                description="12 个许可证"
-                icon="📜"
-                href="/license"
+                title="代码风险检测"
+                description="许可证、漏洞、投毒风险"
+                icon="🔍"
+                href="/code-risk"
                 data={{
-                  compatible: 10,
-                  conflict: 2,
-                  undeclared: 0,
+                  license: 12,
+                  vulnerability: scanResult.vulnerabilities,
+                  poisoning: 8,
                 }}
-                chartType="donut"
-              />
-
-              <ModuleEntryCard
-                title="漏洞检测"
-                description={`${scanResult.vulnerabilities} 个漏洞`}
-                icon="🛡️"
-                href="/vulnerability"
-                data={{
-                  high: scanResult.vulnerabilitySummary.high,
-                  medium: scanResult.vulnerabilitySummary.medium,
-                  low: scanResult.vulnerabilitySummary.low,
-                }}
-                chartType="radar"
-              />
-
-              <ModuleEntryCard
-                title="投毒风险检测"
-                description="15 个贡献者"
-                icon="⚠️"
-                href="/poison"
-                data={{
-                  tasks: 8,
-                  malicious: 6,
-                  benign: 119,
-                }}
-                chartType="line"
+                chartType="risk-radar"
               />
 
               <ModuleEntryCard

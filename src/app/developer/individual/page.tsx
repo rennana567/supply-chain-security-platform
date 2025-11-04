@@ -227,7 +227,7 @@ export default function IndividualDeveloperPage() {
 
         {profile && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Panel - Basic Info */}
+            {/* Left Panel - Basic Info & Influence */}
             <div className="space-y-6">
               {/* Avatar & Basic Info */}
               <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 card-gradient">
@@ -256,6 +256,25 @@ export default function IndividualDeveloperPage() {
                       {badge}
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Personal Influence - Moved to left */}
+              <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 card-gradient">
+                <h3 className="text-lg font-semibold mb-4">个人影响力</h3>
+                <div className="space-y-4">
+                  <div className="text-center p-4 bg-[var(--input)] rounded-lg">
+                    <div className="text-3xl font-bold text-[var(--primary)] mb-2">{profile.influence.prMergeRate}%</div>
+                    <div className="text-sm text-[var(--muted-foreground)]">PR合并率</div>
+                  </div>
+                  <div className="text-center p-4 bg-[var(--input)] rounded-lg">
+                    <div className="text-3xl font-bold text-green-400 mb-2">{profile.influence.mentions}</div>
+                    <div className="text-sm text-[var(--muted-foreground)]">被@次数</div>
+                  </div>
+                  <div className="text-center p-4 bg-[var(--input)] rounded-lg">
+                    <div className="text-3xl font-bold text-purple-400 mb-2">{profile.influence.reviewRequests}</div>
+                    <div className="text-sm text-[var(--muted-foreground)]">被请求Review次数</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -379,25 +398,6 @@ export default function IndividualDeveloperPage() {
                   <div>
                     <h4 className="text-md font-semibold mb-3">PR活动趋势</h4>
                     <GitHubLineChart data={MOCK_DEVELOPER_CHART_DATA.prActivity} height={300} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Personal Influence */}
-              <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 card-gradient">
-                <h3 className="text-lg font-semibold mb-4">开发者个人影响力: PR合并率、被@/被请求Review次数</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-[var(--input)] rounded-lg">
-                    <div className="text-3xl font-bold text-[var(--primary)] mb-2">{profile.influence.prMergeRate}%</div>
-                    <div className="text-sm text-[var(--muted-foreground)]">PR合并率</div>
-                  </div>
-                  <div className="text-center p-4 bg-[var(--input)] rounded-lg">
-                    <div className="text-3xl font-bold text-green-400 mb-2">{profile.influence.mentions}</div>
-                    <div className="text-sm text-[var(--muted-foreground)]">被@次数</div>
-                  </div>
-                  <div className="text-center p-4 bg-[var(--input)] rounded-lg">
-                    <div className="text-3xl font-bold text-purple-400 mb-2">{profile.influence.reviewRequests}</div>
-                    <div className="text-sm text-[var(--muted-foreground)]">被请求Review次数</div>
                   </div>
                 </div>
               </div>
