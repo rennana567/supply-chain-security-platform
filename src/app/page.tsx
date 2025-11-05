@@ -290,7 +290,10 @@ export default function IntroPage() {
             </div>
 
             <div className="section-image flex-1 flex justify-center">
-              <div className="relative group">
+              <div
+                className="relative group cursor-pointer"
+                onClick={() => router.push('/home')}
+              >
                 <div className="absolute -inset-4 bg-gradient-to-r from-[#3B82F6] to-[#60A5FA] rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-all duration-300"></div>
                 <Image
                   src={s.img}
@@ -300,6 +303,11 @@ export default function IntroPage() {
                   className="rounded-xl shadow-2xl object-cover relative z-10 transform transition-transform duration-300 group-hover:scale-105"
                   priority={i === 0}
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+                  <span className="text-white text-sm font-medium bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">
+                    点击进入首页
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -351,6 +359,19 @@ export default function IntroPage() {
           </div>
         </div>
       )}
+
+      {/* 固定底部导航按钮 */}
+      <div className="fixed bottom-8 right-8 z-40">
+        <button
+          onClick={() => router.push('/home')}
+          className="bg-gradient-to-r from-[#3B82F6] to-[#60A5FA] text-white px-6 py-3 rounded-full shadow-lg hover:shadow-blue-500/25 transition-all duration-200 flex items-center gap-2 group"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span className="font-medium">进入首页</span>
+        </button>
+      </div>
     </div>
   )
 }
