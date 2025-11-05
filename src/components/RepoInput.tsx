@@ -8,6 +8,8 @@ interface RepoInputProps {
   onFileSelect?: (file: File) => void;
   placeholder?: string;
   showFileUpload?: boolean;
+  required?: boolean;
+  error?: string;
 }
 
 // 预定义的仓库URL映射
@@ -29,7 +31,9 @@ export function RepoInput({
   onChange,
   onFileSelect,
   placeholder = "输入 GitHub / Gitee 仓库 URL",
-  showFileUpload = true
+  showFileUpload = true,
+  required = false,
+  error
 }: RepoInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -90,7 +94,10 @@ export function RepoInput({
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
           placeholder={placeholder}
-          className="w-full px-6 py-4 bg-[var(--input)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all duration-300 glow-hover"
+          required={required}
+          className={`w-full px-6 py-4 bg-[var(--input)] border rounded-lg text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all duration-300 glow-hover ${
+            error ? 'border-red-500' : 'border-[var(--border)]'
+          }`}
         />
         {showFileUpload && (
           <>
@@ -132,6 +139,11 @@ export function RepoInput({
           </div>
         )}
       </div>
+      {error && (
+        <div className="mt-2 text-sm text-red-500">
+          {error}
+        </div>
+      )}
       {fileName && (
         <div className="mt-2 text-sm text-[var(--muted-foreground)]">
           已选择: {fileName}

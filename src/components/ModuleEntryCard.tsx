@@ -183,9 +183,14 @@ export function ModuleEntryCard({ title, description, icon, href, data, chartTyp
         );
 
       case 'risk-radar':
+        const riskData = {
+          license: data.license || 0,
+          vulnerability: data.vulnerability || 0,
+          poisoning: data.poisoning || 0,
+        };
         return (
           <div className="flex justify-center items-center">
-            <RiskRadarChart data={data} width={240} height={160} />
+            <RiskRadarChart data={riskData} width={240} height={160} />
           </div>
         );
 

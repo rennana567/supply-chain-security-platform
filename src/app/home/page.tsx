@@ -1,29 +1,68 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { RepoInput } from '@/components/RepoInput';
 import { ScanButton } from '@/components/ScanButton';
 import { OverviewCard } from '@/components/OverviewCard';
 import { ModuleEntryCard } from '@/components/ModuleEntryCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { getRepositoryId, getRepositoryName } from '@/lib/repo-ids';
+
+// 简单的内存存储（临时解决方案）
+const scanResults = new Map<string, any>();
+
+function storeScanResult(repoUrl: string, data: any): string {
+  const id = `scan-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  scanResults.set(id, {
+    id,
+    repoUrl,
+    repoName: data.repoName || repoUrl,
+    timestamp: Date.now(),
+    data
+  });
+  return id;
+}
 
 export default function Dashboard() {
+  const router = useRouter();
   const [repoUrl, setRepoUrl] = useState('');
   const [isScanning, setIsScanning] = useState(false);
-  const [scanResult, setScanResult] = useState<any>(null);
+  const [scanResult, setScanResult] = useState<{
+    repoName: string;
+    totalComponents: number;
+    licensedComponents: number;
+    vulnerabilities: number;
+    riskLevel: string;
+    overallScore: number;
+    sbomSummary: { total: number; npm: number; pip: number; other: number };
+    vulnerabilitySummary: { high: number; medium: number; low: number };
+    contributors: number;
+    scanId: string;
+    repoId: string;
+  } | null>(null);
+  const [inputError, setInputError] = useState('');
 
   const handleScan = async () => {
+    // 验证输入
+    if (!repoUrl.trim()) {
+      setInputError('请输入仓库URL或上传压缩包');
+      return;
+    }
+
+    setInputError('');
     setIsScanning(true);
-    
+
     // TODO: 替换为真实 API 调用
     // 示例：
     // const result = await api.scan({ repoUrl });
     // setScanResult(result);
-    
+
     // 模拟扫描过程
     setTimeout(() => {
-      setScanResult({
+      const scanData = {
+        repoName: getRepositoryName(repoUrl),
         totalComponents: 164,
         licensedComponents: 12,
         vulnerabilities: 5,
@@ -32,8 +71,21 @@ export default function Dashboard() {
         sbomSummary: { total: 123, npm: 80, pip: 30, other: 13 },
         vulnerabilitySummary: { high: 1, medium: 2, low: 2 },
         contributors: 15,
+      };
+
+      // 存储扫描结果并获取扫描ID
+      const scanId = storeScanResult(repoUrl, scanData);
+
+      setScanResult({
+        ...scanData,
+        scanId,
+        repoId: getRepositoryId(repoUrl)
       });
+
       setIsScanning(false);
+
+      // 导航到扫描结果页面
+      router.push(`/scan/${scanId}`);
     }, 2000);
   };
 
@@ -47,6 +99,12 @@ export default function Dashboard() {
             <p className="text-sm text-[var(--muted-foreground)] mt-1">AI 驱动的全方位安全检测与风险评估</p>
           </div>
           <div className="flex items-center gap-4">
+            <Link
+              href="/scan-history"
+              className="px-4 py-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+            >
+              扫描历史
+            </Link>
             <ThemeToggle />
           </div>
         </div>
@@ -56,7 +114,12 @@ export default function Dashboard() {
       <main className="container mx-auto px-6 py-8">
         {/* Input Section */}
         <div className="mb-8">
-          <RepoInput value={repoUrl} onChange={setRepoUrl} />
+          <RepoInput
+            value={repoUrl}
+            onChange={setRepoUrl}
+            required={true}
+            error={inputError}
+          />
           <div className="mt-4 flex justify-center">
             <ScanButton onClick={handleScan} isLoading={isScanning} />
           </div>
