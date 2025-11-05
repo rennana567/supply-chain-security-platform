@@ -16,7 +16,9 @@
       "Bash(mv \"src/app/home.tsx\" \"src/app/home/page.tsx\")",
       "Bash(npm uninstall:*)",
       "Bash(npm ls:*)",
-      "Bash(pnpm ls:*)"
+      "Bash(pnpm ls:*)",
+      "Bash(del:*)",
+      "Bash(timeout 30s npm run build:*)"
     ],
     "deny": [],
     "ask": []
