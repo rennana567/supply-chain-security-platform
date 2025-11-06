@@ -19,7 +19,9 @@
       "Bash(pnpm ls:*)",
       "Bash(del:*)",
       "Bash(timeout 30s npm run build:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(findstr:*)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []

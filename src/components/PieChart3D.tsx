@@ -84,6 +84,42 @@ function PieChart3DScene({ data }: { data: PieData[] }) {
   const total = useMemo(() => data.reduce((sum, item) => sum + item.value, 0), [data]);
   const maxValue = useMemo(() => Math.max(...data.map((item) => item.value)), [data]);
 
+  // 如果所有数据都是0，显示一个默认的多色饼图，保持与扫描后相同的比例和高度
+  if (total === 0) {
+    // 使用与扫描后相同的比例：npm: 80, pip: 30, other: 13
+    const defaultData = [
+      { value: 80, color: '#5b8def' },
+      { value: 30, color: '#8b5cf6' },
+      { value: 13, color: '#10b981' },
+    ];
+    const defaultTotal = defaultData.reduce((sum, item) => sum + item.value, 0);
+    const defaultMaxValue = Math.max(...defaultData.map((item) => item.value));
+
+    let currentAngle = 0;
+
+    return (
+      <group ref={groupRef}>
+        {defaultData.map((item, index) => {
+          const angle = (item.value / defaultTotal) * Math.PI * 2;
+          const startAngle = currentAngle;
+          const endAngle = currentAngle + angle;
+          currentAngle = endAngle;
+
+          return (
+            <PieSlice
+              key={index}
+              startAngle={startAngle}
+              endAngle={endAngle}
+              value={item.value}
+              color={item.color}
+              maxValue={defaultMaxValue}
+            />
+          );
+        })}
+      </group>
+    );
+  }
+
   let currentAngle = 0;
 
   return (

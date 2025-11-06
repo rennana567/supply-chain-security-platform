@@ -146,7 +146,7 @@ export default function Dashboard() {
                 title="SBOM 清单"
                 description={`${scanResult.sbomSummary.total} 个组件`}
                 icon="📦"
-                href="/sbom"
+                href={`/sbom/${scanResult.repoId}`}
                 data={{
                   npm: scanResult.sbomSummary.npm,
                   pip: scanResult.sbomSummary.pip,
@@ -234,7 +234,37 @@ export default function Dashboard() {
             <p className="text-xl text-[var(--muted-foreground)] mb-8">
               输入仓库 URL 或上传压缩包开始安全扫描
             </p>
-            
+
+            {/* Pre-scan module cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr max-w-6xl mx-auto">
+              <ModuleEntryCard
+                title="SBOM 清单"
+                description="查看项目组件清单"
+                icon="📦"
+                href="/sbom"
+                data={{ npm: 0, pip: 0, other: 0 }}
+                chartType="pie"
+              />
+
+              <ModuleEntryCard
+                title="代码风险检测"
+                description="许可证、漏洞、投毒风险"
+                icon="🔍"
+                href="/code-risk"
+                data={{ license: 0, vulnerability: 0, poisoning: 0 }}
+                chartType="risk-radar"
+              />
+
+              <ModuleEntryCard
+                title="开发者画像"
+                description="开发者活跃度与贡献概览"
+                icon="👥"
+                href="/developer"
+                data={{ commits: 0, prs: 0, reviews: 0 }}
+                chartType="bar"
+              />
+            </div>
+
             {/* Feature Highlights */}
             <div className="max-w-4xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 text-left">

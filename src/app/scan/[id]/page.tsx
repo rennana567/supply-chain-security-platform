@@ -163,7 +163,7 @@ export default function ScanResultPage() {
             title="SBOM 清单"
             description={`${scanResult.sbomSummary.total} 个组件`}
             icon="📦"
-            href="/sbom"
+            href={`/sbom/${scanResult.repoId}`}
             data={{
               npm: scanResult.sbomSummary.npm,
               pip: scanResult.sbomSummary.pip,
