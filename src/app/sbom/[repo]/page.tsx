@@ -161,7 +161,8 @@ export default function SBOMPage({ params }: Props) {
 
   useEffect(() => {
     // 根据repo参数获取数据
-    const repoData = repoDataMap[params.repo];
+    const repo = params.repo as string;
+    const repoData = repoDataMap[repo];
     if (repoData) {
       setComponents(repoData.components);
       setSummary(repoData.summary);
@@ -231,7 +232,7 @@ export default function SBOMPage({ params }: Props) {
               🏠 返回首页
             </button>
             <h1 className="text-2xl font-bold text-gradient">
-              SBOM 清单 - {repoDataMap[params.repo]?.name || params.repo}
+              SBOM 清单 - {repoDataMap[params.repo as string]?.name || params.repo}
             </h1>
           </div>
           <div className="flex gap-2">

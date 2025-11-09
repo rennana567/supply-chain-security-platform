@@ -195,7 +195,7 @@ export function GitHubLineChart({ data, height = 400 }: GitHubLineChartProps) {
               rotate: ROTATE_DEG,
               margin: AXIS_MARGIN,
               hideOverlap: true,
-              color: 'var(--muted-foreground)'
+              color: '#94a3b8'
             }
           },
           yAxis: {
@@ -203,14 +203,14 @@ export function GitHubLineChart({ data, height = 400 }: GitHubLineChartProps) {
             name: yAxisName,
             nameTextStyle: {
               padding: [0, 6, 0, 0],
-              color: 'var(--muted-foreground)'
+              color: '#94a3b8'
             },
             axisLabel: {
-              color: 'var(--muted-foreground)'
+              color: '#94a3b8'
             },
             splitLine: {
               lineStyle: {
-                color: 'var(--border)',
+                color: '#334155',
                 type: 'dashed'
               }
             }

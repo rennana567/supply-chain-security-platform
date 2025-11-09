@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { RepoInput } from '@/components/RepoInput';
 import { ScanButton } from '@/components/ScanButton';
 import { GitHubLineChart } from '@/components/GitHubLineChart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { MOCK_COMMUNITY_CHART_DATA } from '@/data/mockDeveloperData';
 
 interface CommunityProfile {
@@ -98,14 +98,14 @@ export default function CommunityDeveloperPage() {
   })) : [];
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+    <div className="min-h-screen bg-[#151b2e] text-white">
       {/* Header */}
-      <header className="border-b border-[var(--border)] bg-[var(--card)]/50 backdrop-blur-sm">
+      <header className="border-b border-[#1e293b] bg-[#151b2e]/50 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/developer')}
-              className="text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors"
+              className="text-[#5b8def] hover:text-[#5b8def]/80 transition-colors"
             >
               ← 返回
             </button>
@@ -121,7 +121,7 @@ export default function CommunityDeveloperPage() {
             {profile && (
               <button
                 onClick={handleExportReport}
-                className="px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary)]/90 rounded-lg transition-all glow-hover"
+                className="px-4 py-2 bg-[#5b8def] hover:bg-[#5b8def]/90 rounded-lg transition-all glow-hover"
               >
                 可导出[治理报告.pdf]
               </button>
@@ -133,7 +133,7 @@ export default function CommunityDeveloperPage() {
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
         {/* Input Section */}
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 mb-8 card-gradient">
+        <div className="bg-[#151b2e] border border-[#1e293b] rounded-lg p-6 mb-8 card-gradient">
           <h2 className="text-lg font-semibold mb-4">社区与生态治理页面，选择输入来源：</h2>
           
           <div className="mb-4">
@@ -142,8 +142,8 @@ export default function CommunityDeveloperPage() {
                 onClick={() => setInputSource('url')}
                 className={`px-4 py-2 rounded-lg transition-all ${
                   inputSource === 'url'
-                    ? 'bg-[var(--primary)] text-white'
-                    : 'bg-[var(--input)] border border-[var(--border)]'
+                    ? 'bg-[#5b8def] text-white'
+                    : 'bg-[#0a0e1a] border border-[#1e293b]'
                 }`}
               >
                 提供url (repo/社区/...)
@@ -152,8 +152,8 @@ export default function CommunityDeveloperPage() {
                 onClick={() => setInputSource('library')}
                 className={`px-4 py-2 rounded-lg transition-all ${
                   inputSource === 'library'
-                    ? 'bg-[var(--primary)] text-white'
-                    : 'bg-[var(--input)] border border-[var(--border)]'
+                    ? 'bg-[#5b8def] text-white'
+                    : 'bg-[#0a0e1a] border border-[#1e293b]'
                 }`}
               >
                 内部库选择
@@ -171,8 +171,8 @@ export default function CommunityDeveloperPage() {
             )}
 
             {inputSource === 'library' && (
-              <div className="text-center py-8 border-2 border-dashed border-[var(--border)] rounded-lg">
-                <p className="text-[var(--muted-foreground)]">内部库选择功能开发中...</p>
+              <div className="text-center py-8 border-2 border-dashed border-[#1e293b] rounded-lg">
+                <p className="text-[#94a3b8]">内部库选择功能开发中...</p>
               </div>
             )}
           </div>
@@ -180,7 +180,7 @@ export default function CommunityDeveloperPage() {
           <div className="flex gap-4 items-center">
             <ScanButton onClick={handleAnalyze} isLoading={isAnalyzing} />
             {profile && (
-              <span className="text-sm text-[var(--muted-foreground)]">
+              <span className="text-sm text-[#94a3b8]">
                 可导出[治理报告.pdf]
               </span>
             )}
@@ -189,221 +189,172 @@ export default function CommunityDeveloperPage() {
 
         {isAnalyzing && (
           <div className="text-center py-20">
-            <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[var(--primary)] mb-4"></div>
-            <p className="text-xl text-[var(--muted-foreground)]">正在分析中...</p>
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#5b8def] mb-4"></div>
+            <p className="text-xl text-[#94a3b8]">正在分析中...</p>
           </div>
         )}
 
         {profile && (
           <div className="space-y-6">
-            {/* First Row: GitHub Charts - Full Width */}
-            <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 card-gradient">
-              <h3 className="text-lg font-semibold mb-4">社区 GitHub 数据趋势分析</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-md font-semibold mb-3">提交趋势对比</h4>
-                  <GitHubLineChart data={MOCK_COMMUNITY_CHART_DATA.commitTrend} height={250} />
+            {/* Top Overview Row */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              {/* Basic Info Card */}
+              <div className="bg-[#151b2e] border border-[#1e293b] rounded-2xl p-6 card-gradient flex flex-col gap-6">
+                <div className="h-32 rounded-xl bg-[#0a0e1a] flex items-center justify-center border border-[#1e293b]/60">
+                  <span className="text-[#94a3b8]">Logo</span>
                 </div>
-                <div>
-                  <h4 className="text-md font-semibold mb-3">增长率对比</h4>
-                  <GitHubLineChart data={MOCK_COMMUNITY_CHART_DATA.growthRate} height={250} />
-                </div>
-              </div>
-            </div>
-
-            {/* Second Row: Basic Info & OVA Overview - Side by Side */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left: Basic Info Card */}
-              <div className="space-y-6">
-                {/* Logo */}
-                <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 card-gradient">
-                  <div className="w-full h-32 bg-[var(--input)] rounded-lg flex items-center justify-center">
-                    <span className="text-[var(--muted-foreground)]">Logo</span>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-[#94a3b8]">仓库数</span>
+                    <span className="font-semibold text-white">{profile.basicInfo.repoCount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#94a3b8]">开发者数</span>
+                    <span className="font-semibold text-white">{profile.basicInfo.developerCount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#94a3b8]">活跃周期</span>
+                    <span className="font-semibold text-white">{profile.basicInfo.activeCycle}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#94a3b8]">Star / Fork</span>
+                    <span className="font-semibold text-white">{profile.basicInfo.totalStars} / {profile.basicInfo.totalForks}</span>
                   </div>
                 </div>
-
-                {/* Basic Info Card */}
-                <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 card-gradient">
-                  <h3 className="text-lg font-semibold mb-4">基础信息卡</h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-[var(--muted-foreground)]">仓库数:</span>
-                      <span className="font-semibold">{profile.basicInfo.repoCount}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[var(--muted-foreground)]">开发者数:</span>
-                      <span className="font-semibold">{profile.basicInfo.developerCount}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[var(--muted-foreground)]">活跃周期:</span>
-                      <span className="font-semibold">{profile.basicInfo.activeCycle}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[var(--muted-foreground)]">Star/Fork总量:</span>
-                      <span className="font-semibold">{profile.basicInfo.totalStars} / {profile.basicInfo.totalForks}</span>
-                    </div>
-                    <div className="mt-4">
-                      <div className="text-[var(--muted-foreground)] mb-2">语言分布:</div>
-                      <ResponsiveContainer width="100%" height={150}>
-                        <PieChart>
-                          <Pie
-                            data={languageData}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, value }) => `${name}: ${value}%`}
-                            outerRadius={60}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {languageData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
+                <div>
+                  <div className="text-xs text-[#94a3b8] mb-2">语言分布</div>
+                  <div className="bg-[#0a0e1a] rounded-xl border border-[#1e293b] p-4">
+                    <ResponsiveContainer width="100%" height={160}>
+                      <PieChart>
+                        <Pie
+                          data={languageData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, value }) => `${name}: ${value}%`}
+                          outerRadius={60}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {languageData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#0a0e1a',
+                            borderRadius: '8px',
+                            border: '1px solid #1e293b',
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </div>
 
-              {/* Right: OVA Overview - Takes 2 columns */}
-              <div className="lg:col-span-2">
-                <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 card-gradient h-full">
-                  <h3 className="text-lg font-semibold mb-4">OVA总体概览情况</h3>
-                  <div className="flex flex-col items-center py-4">
-                    {/* Concentric Circles representing OVA Model */}
-                    <div className="relative w-full max-w-md h-80 flex items-center justify-center mb-6">
-                      {/* Observation Circle (Outermost) */}
-                      <div 
-                        className="absolute rounded-full border-4 flex flex-col items-center justify-center bg-[var(--primary)]/10"
-                        style={{
-                          width: '280px',
-                          height: '280px',
-                          borderColor: '#5b8def',
-                        }}
-                      >
-                        <span className="text-sm font-semibold text-[var(--primary)]">Observation</span>
-                        <span className="text-lg font-bold text-[var(--primary)]">{profile.ovaOverview.observation}</span>
-                      </div>
-                      
-                      {/* Value Circle (Middle) */}
-                      <div 
-                        className="absolute rounded-full border-4 flex flex-col items-center justify-center bg-green-500/10"
-                        style={{
-                          width: '210px',
-                          height: '210px',
-                          borderColor: '#10b981',
-                        }}
-                      >
-                        <span className="text-sm font-semibold text-green-400">Value</span>
-                        <span className="text-lg font-bold text-green-400">{profile.ovaOverview.value}</span>
-                      </div>
-                      
-                      {/* Action Circle (Inner) */}
-                      <div 
-                        className="absolute rounded-full border-4 flex flex-col items-center justify-center bg-yellow-500/10"
-                        style={{
-                          width: '140px',
-                          height: '140px',
-                          borderColor: '#f59e0b',
-                        }}
-                      >
-                        <span className="text-sm font-semibold text-yellow-400">Action</span>
-                        <span className="text-lg font-bold text-yellow-400">{profile.ovaOverview.action}</span>
-                      </div>
-                      
-                      {/* System Health Index (Center) */}
-                      <div 
-                        className="absolute rounded-full bg-gradient-to-br from-[var(--primary)] to-green-400 flex flex-col items-center justify-center shadow-lg z-10"
-                        style={{
-                          width: '70px',
-                          height: '70px',
-                        }}
-                      >
-                        <div className="text-center text-white">
-                          <div className="text-lg font-bold">{profile.ovaOverview.systemHealthIndex}</div>
-                          <div className="text-xs">健康指数</div>
-                        </div>
-                      </div>
+              {/* OVA Overview */}
+              <div className="xl:col-span-2 bg-[#151b2e] border border-[#1e293b] rounded-2xl p-8 card-gradient flex flex-col">
+                <h3 className="text-lg font-semibold mb-2">OVA总体概览情况</h3>
+                <p className="text-xs text-[#94a3b8] mb-6">Observation · Value · Action · 综合健康指数</p>
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <div className="relative w-full max-w-[360px] h-[360px] mx-auto">
+                    <div className="absolute inset-0 rounded-full border-4 border-[#5b8def] bg-[#20315b]/30 flex flex-col items-center justify-center">
+                      <span className="text-sm font-semibold text-[#5b8def]">Observation</span>
+                      <span className="text-2xl font-bold text-[#5b8def]">{profile.ovaOverview.observation}</span>
                     </div>
-                    
-                    {/* Legend */}
-                    <div className="grid grid-cols-3 gap-4 w-full max-w-lg">
-                      <div className="text-center p-3 bg-[var(--input)] rounded-lg">
-                        <div className="text-sm text-[var(--muted-foreground)] mb-1">观察</div>
-                        <div className="text-lg font-bold text-[var(--primary)]">{profile.ovaOverview.observation}</div>
-                      </div>
-                      <div className="text-center p-3 bg-[var(--input)] rounded-lg">
-                        <div className="text-sm text-[var(--muted-foreground)] mb-1">价值</div>
-                        <div className="text-lg font-bold text-green-400">{profile.ovaOverview.value}</div>
-                      </div>
-                      <div className="text-center p-3 bg-[var(--input)] rounded-lg">
-                        <div className="text-sm text-[var(--muted-foreground)] mb-1">行动</div>
-                        <div className="text-lg font-bold text-yellow-400">{profile.ovaOverview.action}</div>
-                      </div>
+                    <div className="absolute inset-[40px] rounded-full border-4 border-[#10b981] bg-[#133a2e] flex flex-col items-center justify-center">
+                      <span className="text-sm font-semibold text-green-400">Value</span>
+                      <span className="text-2xl font-bold text-green-400">{profile.ovaOverview.value}</span>
                     </div>
+                    <div className="absolute inset-[80px] rounded-full border-4 border-[#f59e0b] bg-[#3e2d15] flex flex-col items-center justify-center">
+                      <span className="text-sm font-semibold text-yellow-400">Action</span>
+                      <span className="text-2xl font-bold text-yellow-400">{profile.ovaOverview.action}</span>
+                    </div>
+                    <div className="absolute inset-[125px] rounded-full bg-gradient-to-br from-[#5b8def] via-[#38bdf8] to-[#10b981] shadow-xl flex flex-col items-center justify-center">
+                      <div className="text-sm text-white/70">健康指数</div>
+                      <div className="text-3xl font-bold text-white">{profile.ovaOverview.systemHealthIndex}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4 mt-6">
+                  <div className="bg-[#0a0e1a] rounded-lg p-4 text-center border border-[#1e293b]/60">
+                    <div className="text-xs text-[#94a3b8] mb-1">观察</div>
+                    <div className="text-xl font-bold text-[#5b8def]">{profile.ovaOverview.observation}</div>
+                  </div>
+                  <div className="bg-[#0a0e1a] rounded-lg p-4 text-center border border-[#1e293b]/60">
+                    <div className="text-xs text-[#94a3b8] mb-1">价值</div>
+                    <div className="text-xl font-bold text-green-400">{profile.ovaOverview.value}</div>
+                  </div>
+                  <div className="bg-[#0a0e1a] rounded-lg p-4 text-center border border-[#1e293b]/60">
+                    <div className="text-xs text-[#94a3b8] mb-1">行动</div>
+                    <div className="text-xl font-bold text-yellow-400">{profile.ovaOverview.action}</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Third Row: OVA Indicators Display - Full Width */}
-            <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 card-gradient">
-              <h3 className="text-lg font-semibold mb-4">OVA具体模型分块 ——— 指标展示</h3>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Radar Chart */}
-                <div>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <RadarChart data={profile.indicators}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="name" tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }} />
-                      <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} />
-                      <Radar
-                        name="指标值"
-                        dataKey="value"
-                        stroke="var(--primary)"
-                        fill="var(--primary)"
-                        fillOpacity={0.6}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'var(--card)',
-                          border: '1px solid var(--border)',
-                          borderRadius: '8px',
-                        }}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Indicator Details */}
-                <div>
-                  <h4 className="text-md font-semibold mb-4">详细指标</h4>
-                  <div className="grid grid-cols-1 gap-4">
-                    {profile.indicators.map((indicator, index) => (
-                      <div key={index} className="p-4 bg-[var(--input)] rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="text-sm font-semibold text-[var(--foreground)]">{indicator.name}</div>
-                          <span className="text-sm font-bold text-[var(--primary)]">{indicator.value} / {indicator.max}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-[var(--background)] rounded-full h-3">
-                            <div
-                              className="h-3 rounded-full bg-[var(--primary)] transition-all duration-500"
-                              style={{ width: `${(indicator.value / indicator.max) * 100}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-xs text-[var(--muted-foreground)] w-12 text-right">
-                            {Math.round((indicator.value / indicator.max) * 100)}%
-                          </span>
-                        </div>
+            {/* Radar & Indicator Detail Row */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="bg-[#151b2e] border border-[#1e293b] rounded-2xl p-6 card-gradient">
+                <h3 className="text-lg font-semibold mb-4">OVA具体模型分块 ——— 指标展示</h3>
+                <ResponsiveContainer width="100%" height={380}>
+                  <RadarChart data={profile.indicators}>
+                    <PolarGrid stroke="#ffffff" />
+                    <PolarAngleAxis dataKey="name" tick={{ fill: '#ffffff', fontSize: 12 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#ffffff', fontSize: 10 }} stroke="#ffffff" />
+                    <Radar
+                      name="指标值"
+                      dataKey="value"
+                      stroke="#5b8def"
+                      fill="#5b8def"
+                      fillOpacity={0.5}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#0a0e1a',
+                        border: '1px solid #1e293b',
+                        borderRadius: '8px',
+                      }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="bg-[#151b2e] border border-[#1e293b] rounded-2xl p-6 card-gradient">
+                <h3 className="text-lg font-semibold mb-4">详细指标</h3>
+                <div className="space-y-4">
+                  {profile.indicators.map((indicator, index) => (
+                    <div key={index} className="bg-[#0a0e1a] rounded-xl border border-[#1e293b]/60 p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-sm font-semibold text-white">{indicator.name}</div>
+                        <div className="text-sm font-bold text-[#5b8def]">{indicator.value} / {indicator.max}</div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="relative h-2 rounded-full bg-[#151b2e] overflow-hidden">
+                        <div
+                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#5b8def] via-[#60a5fa] to-[#38bdf8]"
+                          style={{ width: `${(indicator.value / indicator.max) * 100}%` }}
+                        ></div>
+                      </div>
+                      <div className="mt-2 text-right text-xs text-[#94a3b8]">
+                        {Math.round((indicator.value / indicator.max) * 100)}%
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Activity & Collaboration Models */}
+            <div className="space-y-6">
+              <div className="bg-[#151b2e] border border-[#1e293b] rounded-2xl p-6 card-gradient">
+                <h3 className="text-lg font-semibold mb-4">活跃度模型</h3>
+                <p className="text-xs text-[#94a3b8] mb-4">年度提交量趋势（Commit Trend per Month）</p>
+                <GitHubLineChart data={MOCK_COMMUNITY_CHART_DATA.commitTrend} height={260} />
+              </div>
+              <div className="bg-[#151b2e] border border-[#1e293b] rounded-2xl p-6 card-gradient">
+                <h3 className="text-lg font-semibold mb-4">协作性模型</h3>
+                <p className="text-xs text-[#94a3b8] mb-4">贡献者交互趋势（Commit Trend per Month）</p>
+                <GitHubLineChart data={MOCK_COMMUNITY_CHART_DATA.growthRate} height={260} />
               </div>
             </div>
           </div>
@@ -412,7 +363,7 @@ export default function CommunityDeveloperPage() {
         {!profile && !isAnalyzing && (
           <div className="text-center py-20">
             <div className="text-6xl mb-4">👥</div>
-            <p className="text-xl text-[var(--muted-foreground)]">输入社区URL或上传文件开始分析</p>
+            <p className="text-xl text-[#94a3b8]">输入社区URL或上传文件开始分析</p>
           </div>
         )}
       </main>
