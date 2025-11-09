@@ -159,9 +159,10 @@ export default function SBOMPage({ params }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const repo = params.repo as string;
+
   useEffect(() => {
     // 根据repo参数获取数据
-    const repo = params.repo as string;
     const repoData = repoDataMap[repo];
     if (repoData) {
       setComponents(repoData.components);
@@ -174,7 +175,7 @@ export default function SBOMPage({ params }: Props) {
       setSummary(defaultData.summary);
       setPieData(defaultData.pieData);
     }
-  }, [params.repo]);
+  }, [repo]);
 
   const filteredComponents = components.filter((comp) => {
     const matchesManager = filterManager === 'all' || comp.manager === filterManager;
@@ -200,7 +201,7 @@ export default function SBOMPage({ params }: Props) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `sbom-${params.repo.replace('/', '-')}.csv`;
+      a.download = `sbom-${repo.replace('/', '-')}.csv`;
       a.click();
     } else {
       const json = JSON.stringify(components, null, 2);
@@ -208,7 +209,7 @@ export default function SBOMPage({ params }: Props) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `sbom-${params.repo.replace('/', '-')}.json`;
+      a.download = `sbom-${repo.replace('/', '-')}.json`;
       a.click();
     }
   };
@@ -232,7 +233,7 @@ export default function SBOMPage({ params }: Props) {
               🏠 返回首页
             </button>
             <h1 className="text-2xl font-bold text-gradient">
-              SBOM 清单 - {repoDataMap[params.repo as string]?.name || params.repo}
+              SBOM 清单 - {repoDataMap[repo]?.name || repo}
             </h1>
           </div>
           <div className="flex gap-2">

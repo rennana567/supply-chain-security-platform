@@ -172,7 +172,7 @@ export default function Dashboard() {
                 title="开发者画像"
                 description={`${scanResult.contributors} 个贡献者`}
                 icon="👥"
-                href="/developer"
+                href={`/developer/${scanResult.repoId}`}
                 data={{
                   commits: 320,
                   prs: 45,
