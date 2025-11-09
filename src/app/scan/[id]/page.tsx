@@ -176,7 +176,7 @@ export default function ScanResultPage() {
             title="代码风险检测"
             description="许可证、漏洞、投毒风险"
             icon="🔍"
-            href="/code-risk"
+            href={`/code-risk/${scanResult.repoId}`}
             data={{
               license: 12,
               vulnerability: scanResult.vulnerabilities,

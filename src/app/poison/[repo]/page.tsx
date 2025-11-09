@@ -1,0 +1,503 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ThemeToggle } from '@/components/ThemeToggle';
+
+interface PoisoningData {
+  id: string;
+  package: string;
+  version: string;
+  riskLevel: 'high' | 'medium' | 'low' | 'safe';
+  detection: string;
+  description: string;
+  suspiciousPatterns: string[];
+  confidence: number;
+}
+
+// 基于检测结果目录的mock数据映射
+const repoPoisoningDataMap: Record<string, {
+  name: string;
+  poisonings: PoisoningData[];
+  summary: {
+    tasks: number;
+    malicious: number;
+    benign: number;
+    suspicious: number;
+  };
+}> = {
+  'repo-kafka-python': {
+    name: 'Kafka Python',
+    poisonings: [
+      {
+        id: 'POI-001',
+        package: 'kafka-python-helper',
+        version: '1.2.3',
+        riskLevel: 'high',
+        detection: '恶意代码注入',
+        description: '检测到可疑的网络连接代码',
+        suspiciousPatterns: ['base64编码', '动态加载', '网络连接'],
+        confidence: 95
+      },
+      {
+        id: 'POI-002',
+        package: 'py-kafka-utils',
+        version: '0.8.1',
+        riskLevel: 'medium',
+        detection: '可疑文件操作',
+        description: '检测到异常的文件读写操作',
+        suspiciousPatterns: ['文件系统访问', '环境变量读取'],
+        confidence: 75
+      },
+    ],
+    summary: { tasks: 8, malicious: 2, benign: 5, suspicious: 1 },
+  },
+  'repo-vue-django': {
+    name: 'Vue Django Book Shop',
+    poisonings: [
+      {
+        id: 'POI-003',
+        package: 'django-auth-utils',
+        version: '2.1.0',
+        riskLevel: 'high',
+        detection: '凭证窃取代码',
+        description: '检测到可疑的凭证收集代码',
+        suspiciousPatterns: ['环境变量读取', '配置文件访问'],
+        confidence: 90
+      },
+    ],
+    summary: { tasks: 6, malicious: 1, benign: 4, suspicious: 1 },
+  },
+  'repo-probabilistic-forecasts': {
+    name: 'Probabilistic Forecasts Attacks',
+    poisonings: [
+      {
+        id: 'POI-004',
+        package: 'forecast-helper',
+        version: '0.5.2',
+        riskLevel: 'low',
+        detection: '可疑数据收集',
+        description: '检测到数据收集行为',
+        suspiciousPatterns: ['数据导出', '日志记录'],
+        confidence: 60
+      },
+      {
+        id: 'POI-005',
+        package: 'ml-utils',
+        version: '1.0.1',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为',
+        suspiciousPatterns: [],
+        confidence: 10
+      },
+    ],
+    summary: { tasks: 12, malicious: 3, benign: 8, suspicious: 1 },
+  },
+  'repo-wumei-smart': {
+    name: 'Wumei Smart',
+    poisonings: [
+      {
+        id: 'POI-006',
+        package: 'smart-device-utils',
+        version: '1.3.0',
+        riskLevel: 'medium',
+        detection: '可疑网络通信',
+        description: '检测到异常的网络通信模式',
+        suspiciousPatterns: ['HTTP请求', '端口扫描'],
+        confidence: 80
+      },
+    ],
+    summary: { tasks: 5, malicious: 1, benign: 3, suspicious: 1 },
+  },
+  'repo-xiangtian-workbench': {
+    name: 'Xiangtian Workbench',
+    poisonings: [
+      {
+        id: 'POI-007',
+        package: 'workbench-tools',
+        version: '2.0.1',
+        riskLevel: 'high',
+        detection: '后门代码',
+        description: '检测到隐藏的后门功能',
+        suspiciousPatterns: ['隐藏功能', '远程控制'],
+        confidence: 92
+      },
+      {
+        id: 'POI-008',
+        package: 'data-processor',
+        version: '1.1.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为',
+        suspiciousPatterns: [],
+        confidence: 5
+      },
+    ],
+    summary: { tasks: 10, malicious: 2, benign: 7, suspicious: 1 },
+  },
+  'repo-pytorch-002': {
+    name: 'PyTorch',
+    poisonings: [
+      {
+        id: 'POI-009',
+        package: 'torch-extensions',
+        version: '0.3.1',
+        riskLevel: 'medium',
+        detection: '可疑模型操作',
+        description: '检测到异常的模型操作',
+        suspiciousPatterns: ['模型导出', '权重修改'],
+        confidence: 70
+      },
+      {
+        id: 'POI-010',
+        package: 'nn-utils',
+        version: '1.2.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为',
+        suspiciousPatterns: [],
+        confidence: 8
+      },
+    ],
+    summary: { tasks: 15, malicious: 4, benign: 10, suspicious: 1 },
+  },
+  'repo-llama-001': {
+    name: 'Meta Llama',
+    poisonings: [
+      {
+        id: 'POI-011',
+        package: 'llama-helper',
+        version: '0.9.2',
+        riskLevel: 'high',
+        detection: '模型投毒',
+        description: '检测到模型权重篡改',
+        suspiciousPatterns: ['权重修改', '模型注入'],
+        confidence: 88
+      },
+    ],
+    summary: { tasks: 8, malicious: 2, benign: 5, suspicious: 1 },
+  },
+  'repo-tensorflow-003': {
+    name: 'TensorFlow',
+    poisonings: [
+      {
+        id: 'POI-012',
+        package: 'tf-extensions',
+        version: '1.1.3',
+        riskLevel: 'medium',
+        detection: '可疑图操作',
+        description: '检测到异常的图操作',
+        suspiciousPatterns: ['图修改', '节点注入'],
+        confidence: 65
+      },
+      {
+        id: 'POI-013',
+        package: 'keras-utils',
+        version: '2.0.1',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为',
+        suspiciousPatterns: [],
+        confidence: 12
+      },
+    ],
+    summary: { tasks: 20, malicious: 5, benign: 14, suspicious: 1 },
+  },
+  'repo-react-004': {
+    name: 'React',
+    poisonings: [
+      {
+        id: 'POI-014',
+        package: 'react-utils',
+        version: '3.1.0',
+        riskLevel: 'low',
+        detection: '可疑组件行为',
+        description: '检测到异常的组件操作',
+        suspiciousPatterns: ['DOM操作', '事件监听'],
+        confidence: 55
+      },
+    ],
+    summary: { tasks: 7, malicious: 1, benign: 5, suspicious: 1 },
+  },
+  'repo-nodejs-005': {
+    name: 'Node.js',
+    poisonings: [
+      {
+        id: 'POI-015',
+        package: 'node-utils',
+        version: '2.2.1',
+        riskLevel: 'high',
+        detection: '恶意脚本注入',
+        description: '检测到脚本注入代码',
+        suspiciousPatterns: ['eval执行', '动态导入'],
+        confidence: 85
+      },
+    ],
+    summary: { tasks: 18, malicious: 3, benign: 14, suspicious: 1 },
+  },
+};
+
+interface Props {
+  params: {
+    repo: string;
+  };
+}
+
+export default function PoisoningDetailPage({ params }: Props) {
+  const router = useRouter();
+  const [poisoningData, setPoisoningData] = useState<{
+    poisonings: PoisoningData[];
+    summary: {
+      tasks: number;
+      malicious: number;
+      benign: number;
+      suspicious: number;
+    };
+  }>({
+    poisonings: [],
+    summary: { tasks: 0, malicious: 0, benign: 0, suspicious: 0 },
+  });
+
+  const repo = params.repo as string;
+
+  useEffect(() => {
+    // 根据repo参数获取数据
+    const repoData = repoPoisoningDataMap[repo];
+    if (repoData) {
+      setPoisoningData({
+        poisonings: repoData.poisonings,
+        summary: repoData.summary,
+      });
+    } else {
+      // 如果没有找到数据，使用默认数据
+      const defaultData = repoPoisoningDataMap['repo-pytorch-002'];
+      setPoisoningData({
+        poisonings: defaultData.poisonings,
+        summary: defaultData.summary,
+      });
+    }
+  }, [repo]);
+
+  const getRiskColor = (riskLevel: string) => {
+    switch (riskLevel) {
+      case 'high':
+        return 'bg-red-600/20 text-red-400';
+      case 'medium':
+        return 'bg-orange-600/20 text-orange-400';
+      case 'low':
+        return 'bg-yellow-600/20 text-yellow-400';
+      case 'safe':
+        return 'bg-green-600/20 text-green-400';
+      default:
+        return 'bg-gray-600/20 text-gray-400';
+    }
+  };
+
+  const getRiskText = (riskLevel: string) => {
+    switch (riskLevel) {
+      case 'high':
+        return '高风险';
+      case 'medium':
+        return '中风险';
+      case 'low':
+        return '低风险';
+      case 'safe':
+        return '安全';
+      default:
+        return '未知';
+    }
+  };
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 80) return 'text-red-600';
+    if (confidence >= 60) return 'text-orange-600';
+    if (confidence >= 40) return 'text-yellow-600';
+    return 'text-green-600';
+  };
+
+  return (
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      {/* Header */}
+      <header className="border-b border-[var(--border)] bg-[var(--card)]/50 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.back()}
+              className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+            >
+              ← 返回
+            </button>
+            <button
+              onClick={() => router.push('/home')}
+              className="text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors"
+            >
+              🏠 返回首页
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gradient">
+                投毒风险检测 - {repoPoisoningDataMap[repo]?.name || repo}
+              </h1>
+              <p className="text-sm text-[var(--muted-foreground)] mt-1">详细的投毒风险分析</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-6 py-8">
+        {/* Summary Section */}
+        <div className="mb-8">
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">投毒风险概览</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{poisoningData.summary.tasks}</div>
+                <div className="text-sm text-[var(--muted-foreground)]">检测任务</div>
+              </div>
+              <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">{poisoningData.summary.malicious}</div>
+                <div className="text-sm text-[var(--muted-foreground)]">恶意包</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">{poisoningData.summary.benign}</div>
+                <div className="text-sm text-[var(--muted-foreground)]">安全包</div>
+              </div>
+              <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600">{poisoningData.summary.suspicious}</div>
+                <div className="text-sm text-[var(--muted-foreground)]">可疑包</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Poisoning Details Table */}
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden">
+          <div className="p-6 border-b border-[var(--border)]">
+            <h2 className="text-xl font-semibold">投毒风险详情</h2>
+            <p className="text-sm text-[var(--muted-foreground)] mt-1">
+              项目中发现的所有投毒风险包及其详细信息
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-[var(--input)]">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--muted-foreground)]">包名</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--muted-foreground)]">版本</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--muted-foreground)]">风险等级</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--muted-foreground)]">检测结果</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--muted-foreground)]">描述</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--muted-foreground)]">可疑模式</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--muted-foreground)]">置信度</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {poisoningData.poisonings.map((poison, index) => (
+                  <tr key={index} className="hover:bg-[var(--input)] transition-colors">
+                    <td className="px-4 py-3 text-sm font-medium">{poison.package}</td>
+                    <td className="px-4 py-3 text-sm text-[var(--muted-foreground)]">{poison.version}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`px-2 py-1 rounded text-xs ${getRiskColor(poison.riskLevel)}`}>
+                        {getRiskText(poison.riskLevel)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm font-medium">{poison.detection}</td>
+                    <td className="px-4 py-3 text-sm text-[var(--muted-foreground)]">{poison.description}</td>
+                    <td className="px-4 py-3 text-sm">
+                      {poison.suspiciousPatterns.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {poison.suspiciousPatterns.map((pattern, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-gray-600/20 text-gray-400 rounded text-xs"
+                            >
+                              {pattern}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-xs">无</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`font-medium ${getConfidenceColor(poison.confidence)}`}>
+                        {poison.confidence}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {poisoningData.poisonings.length === 0 && (
+            <div className="text-center py-12 text-[var(--muted-foreground)]">没有找到投毒风险数据</div>
+          )}
+        </div>
+
+        {/* Security Analysis */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6">
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <span className="text-2xl">🛡️</span>
+              防护建议
+            </h3>
+            <ul className="text-sm text-[var(--muted-foreground)] space-y-2">
+              <li>• 立即移除所有高风险恶意包</li>
+              <li>• 审查所有可疑包的源代码</li>
+              <li>• 使用可信的包管理源</li>
+              <li>• 实施包签名验证机制</li>
+            </ul>
+          </div>
+
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6">
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <span className="text-2xl">📊</span>
+              风险分析
+            </h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>总体风险等级</span>
+                <span className={poisoningData.summary.malicious > 3 ? 'text-red-600' :
+                               poisoningData.summary.malicious > 1 ? 'text-orange-600' : 'text-green-600'}>
+                  {poisoningData.summary.malicious > 3 ? '高风险' :
+                   poisoningData.summary.malicious > 1 ? '中风险' : '低风险'}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>恶意包占比</span>
+                <span className="text-red-600">
+                  {poisoningData.summary.tasks > 0
+                    ? Math.round((poisoningData.summary.malicious / poisoningData.summary.tasks) * 100)
+                    : 0}%
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>安全包占比</span>
+                <span className="text-green-600">
+                  {poisoningData.summary.tasks > 0
+                    ? Math.round((poisoningData.summary.benign / poisoningData.summary.tasks) * 100)
+                    : 0}%
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>可疑包占比</span>
+                <span className="text-orange-600">
+                  {poisoningData.summary.tasks > 0
+                    ? Math.round((poisoningData.summary.suspicious / poisoningData.summary.tasks) * 100)
+                    : 0}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

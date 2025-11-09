@@ -21,7 +21,8 @@
       "Bash(timeout 30s npm run build:*)",
       "Bash(taskkill:*)",
       "Bash(findstr:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []
