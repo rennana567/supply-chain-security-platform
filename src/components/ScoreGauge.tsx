@@ -207,7 +207,7 @@ export default function ScoreGauge({ score, title = '综合评分', width = 400,
           axisLine: {
             show: true,
             lineStyle: {
-              color: colorSet as any,
+              color: colorSet,
               width: 25,
               shadowOffsetX: 0,
               shadowOffsetY: 0,

@@ -3,7 +3,6 @@
 import { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
-// @ts-ignore
 import * as THREE from 'three';
 
 interface BarData {

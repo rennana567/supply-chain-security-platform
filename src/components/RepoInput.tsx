@@ -12,18 +12,18 @@ interface RepoInputProps {
   error?: string;
 }
 
-// 预定义的仓库URL映射
+// 预定义的仓库URL映射 - 仅包含指定的10个仓库
 const REPO_SUGGESTIONS: Record<string, string> = {
-  'llama': 'https://github.com/meta-llama/llama',
+  'kafka-python': 'https://github.com/dpkp/kafka-python',
+  'xiangtian-workbench': 'https://github.com/FxRayHughes/xiangtian-workbench',
+  'wumei-smart': 'https://github.com/kerwincui/wumei-smart',
+  'probabilistic-forecasts-attacks': 'https://github.com/eth-sri/probabilistic-forecasts-attacks',
+  'VueDjangoAntdProBookShop': 'https://github.com/mtianyan/VueDjangoAntdProBookShop',
   'pytorch': 'https://github.com/pytorch/pytorch',
   'tensorflow': 'https://github.com/tensorflow/tensorflow',
-  'react': 'https://github.com/facebook/react',
-  'vue': 'https://github.com/vuejs/vue',
-  'angular': 'https://github.com/angular/angular',
-  'node': 'https://github.com/nodejs/node',
-  'kubernetes': 'https://github.com/kubernetes/kubernetes',
-  'docker': 'https://github.com/docker/docker',
-  'vscode': 'https://github.com/microsoft/vscode',
+  'DeepSeek-V3': 'https://github.com/deepseek-ai/DeepSeek-V3',
+  'llama': 'https://github.com/meta-llama/llama',
+  'mistral-inference': 'https://github.com/mistralai/mistral-inference',
 };
 
 export function RepoInput({

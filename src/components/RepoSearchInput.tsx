@@ -174,7 +174,7 @@ export function RepoSearchInput({
 
       {/* 帮助文本 */}
       <div className="mt-2 text-sm text-[var(--muted-foreground)]">
-        提示：输入仓库名称如 "llama" 会自动提示完整链接
+        提示：输入仓库名称如 {'"'}llama{'"'} 会自动提示完整链接
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { GitHubLineChart } from '@/components/GitHubLineChart';
 import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
@@ -33,8 +33,13 @@ interface CommunityProfile {
 const COLORS = ['#5b8def', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 // 模拟数据映射 - 基于10个确定的repo
-const repoDataMap: Record<string, any> = {
-  'repo-pytorch-002': {
+interface RepoDeveloperData {
+  name: string;
+  profile: CommunityProfile;
+}
+
+const repoDataMap: Record<string, RepoDeveloperData> = {
+  'repo-pytorch': {
     name: 'PyTorch',
     profile: {
       repoUrl: 'https://github.com/pytorch/pytorch',
@@ -68,7 +73,7 @@ const repoDataMap: Record<string, any> = {
       ],
     }
   },
-  'repo-llama-001': {
+  'repo-llama': {
     name: 'Meta Llama',
     profile: {
       repoUrl: 'https://github.com/meta-llama/llama',
@@ -102,7 +107,7 @@ const repoDataMap: Record<string, any> = {
       ],
     }
   },
-  'repo-tensorflow-003': {
+  'repo-tensorflow': {
     name: 'TensorFlow',
     profile: {
       repoUrl: 'https://github.com/tensorflow/tensorflow',
@@ -136,35 +141,105 @@ const repoDataMap: Record<string, any> = {
       ],
     }
   },
-  // 可以添加更多repo的数据
+  'repo-deepseek-v3': {
+    name: 'DeepSeek V3',
+    profile: {
+      repoUrl: 'https://github.com/deepseek-ai/DeepSeek-V3',
+      basicInfo: {
+        repoCount: 28,
+        developerCount: 82,
+        activeCycle: '2022-2024',
+        languageDistribution: {
+          'Python': 50,
+          'JavaScript': 20,
+          'TypeScript': 15,
+          'C++': 10,
+          'Other': 5,
+        },
+        totalStars: 7500,
+        totalForks: 1800,
+      },
+      ovaOverview: {
+        observation: 90,
+        value: 88,
+        action: 84,
+        systemHealthIndex: 87,
+      },
+      indicators: [
+        { name: '代码质量', value: 90, max: 100 },
+        { name: '社区活跃度', value: 88, max: 100 },
+        { name: '文档完整性', value: 80, max: 100 },
+        { name: '响应速度', value: 86, max: 100 },
+        { name: '安全性', value: 94, max: 100 },
+        { name: '可维护性', value: 82, max: 100 },
+      ],
+    }
+  },
+  'repo-mistral-inference': {
+    name: 'Mistral Inference',
+    profile: {
+      repoUrl: 'https://github.com/mistralai/mistral-inference',
+      basicInfo: {
+        repoCount: 22,
+        developerCount: 65,
+        activeCycle: '2023-2024',
+        languageDistribution: {
+          'Python': 55,
+          'JavaScript': 18,
+          'TypeScript': 12,
+          'Rust': 10,
+          'Other': 5,
+        },
+        totalStars: 5200,
+        totalForks: 1200,
+      },
+      ovaOverview: {
+        observation: 87,
+        value: 83,
+        action: 81,
+        systemHealthIndex: 84,
+      },
+      indicators: [
+        { name: '代码质量', value: 87, max: 100 },
+        { name: '社区活跃度', value: 83, max: 100 },
+        { name: '文档完整性', value: 78, max: 100 },
+        { name: '响应速度', value: 85, max: 100 },
+        { name: '安全性', value: 91, max: 100 },
+        { name: '可维护性', value: 80, max: 100 },
+      ],
+    }
+  },
 };
 
 interface Props {
-  params: {
+  params: Promise<{
     repo: string;
-  };
+  }>;
 }
 
 export default function DeveloperCommunityPage({ params }: Props) {
   const router = useRouter();
   const [profile, setProfile] = useState<CommunityProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const resolvedParams = use(params);
+  const repo = resolvedParams.repo;
 
   useEffect(() => {
     // 根据repo参数获取数据
-    const repo = params.repo as string;
     const repoData = repoDataMap[repo];
 
     if (repoData) {
       setProfile(repoData.profile);
     } else {
       // 如果没有找到数据，使用默认数据
-      const defaultData = repoDataMap['repo-pytorch-002'];
+      const defaultData = repoDataMap['repo-pytorch'];
       setProfile(defaultData.profile);
     }
 
     setLoading(false);
-  }, [params.repo]);
+  }, [repo]);
 
   const languageData = profile ? Object.entries(profile.basicInfo.languageDistribution).map(([name, value]) => ({
     name,
@@ -205,7 +280,7 @@ export default function DeveloperCommunityPage({ params }: Props) {
               🏠 返回首页
             </button>
             <h1 className="text-2xl font-bold text-gradient">
-              社区与生态治理 - {repoDataMap[params.repo as string]?.name || params.repo}
+              社区与生态治理 - {repoDataMap[repo]?.name || repo}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -221,6 +296,21 @@ export default function DeveloperCommunityPage({ params }: Props) {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
+        {/* Search and Filters */}
+        <div className="bg-[#151b2e] border border-[#1e293b] rounded-2xl p-6 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="搜索开发者或指标..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 bg-[#0a0e1a] border border-[#1e293b] rounded-lg text-white placeholder-[#94a3b8] focus:outline-none focus:ring-2 focus:ring-[#5b8def]"
+              />
+            </div>
+          </div>
+        </div>
+
         {profile && (
           <div className="space-y-6">
             {/* Top Overview Row */}

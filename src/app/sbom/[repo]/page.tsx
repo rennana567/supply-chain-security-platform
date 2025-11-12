@@ -1,25 +1,396 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import PieChart3D from '@/components/PieChart3D';
+import { getSBOMData, Component, SBOMSummary, PieData } from '@/lib/sbom-parser';
 
-interface Component {
+// 模拟数据映射（作为备用）
+interface RepoData {
   name: string;
-  version: string;
-  purl: string;
-  ecosystem: string;
-  level: 'direct' | 'transitive';
-  package: string;
-  path: string;
-  license: string;
-  manager: string;
+  components: Component[];
+  summary: {
+    total: number;
+    packages: number;
+    managers: number;
+    licenses: number;
+  };
+  pieData: { name: string; value: number; color: string }[];
 }
 
-// 模拟数据映射
-const repoDataMap: Record<string, any> = {
-  'repo-pytorch-002': {
+const repoDataMap: Record<string, RepoData> = {
+  'repo-pytorch': {
     name: 'PyTorch',
+    components: [
+      {
+        name: 'torch',
+        version: '2.4.1',
+        purl: 'pkg:pypi/torch@2.4.1',
+        ecosystem: 'pypi',
+        level: 'direct' as const,
+        package: 'torch',
+        path: '/venv/lib/python3.9/site-packages/torch',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'numpy',
+        version: '1.24.0',
+        purl: 'pkg:pypi/numpy@1.24.0',
+        ecosystem: 'pypi',
+        level: 'direct' as const,
+        package: 'numpy',
+        path: '/venv/lib/python3.9/site-packages/numpy',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'scipy',
+        version: '1.10.0',
+        purl: 'pkg:pypi/scipy@1.10.0',
+        ecosystem: 'pypi',
+        level: 'direct' as const,
+        package: 'scipy',
+        path: '/venv/lib/python3.9/site-packages/scipy',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'transformers',
+        version: '4.46.3',
+        purl: 'pkg:pypi/transformers@4.46.3',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'transformers',
+        path: '/venv/lib/python3.9/site-packages/transformers',
+        license: 'Apache-2.0',
+        manager: 'pip',
+      },
+      {
+        name: 'matplotlib',
+        version: '3.7.0',
+        purl: 'pkg:pypi/matplotlib@3.7.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'matplotlib',
+        path: '/venv/lib/python3.9/site-packages/matplotlib',
+        license: 'PSF',
+        manager: 'pip',
+      },
+      {
+        name: 'pandas',
+        version: '2.0.0',
+        purl: 'pkg:pypi/pandas@2.0.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'pandas',
+        path: '/venv/lib/python3.9/site-packages/pandas',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'requests',
+        version: '2.31.0',
+        purl: 'pkg:pypi/requests@2.31.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'requests',
+        path: '/venv/lib/python3.9/site-packages/requests',
+        license: 'Apache-2.0',
+        manager: 'pip',
+      },
+      {
+        name: 'pillow',
+        version: '10.0.0',
+        purl: 'pkg:pypi/pillow@10.0.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'pillow',
+        path: '/venv/lib/python3.9/site-packages/pillow',
+        license: 'HPND',
+        manager: 'pip',
+      },
+      {
+        name: 'opencv-python',
+        version: '4.8.0',
+        purl: 'pkg:pypi/opencv-python@4.8.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'opencv-python',
+        path: '/venv/lib/python3.9/site-packages/opencv-python',
+        license: 'Apache-2.0',
+        manager: 'pip',
+      },
+      {
+        name: 'tensorboard',
+        version: '2.14.0',
+        purl: 'pkg:pypi/tensorboard@2.14.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'tensorboard',
+        path: '/venv/lib/python3.9/site-packages/tensorboard',
+        license: 'Apache-2.0',
+        manager: 'pip',
+      },
+      {
+        name: 'protobuf',
+        version: '4.24.0',
+        purl: 'pkg:pypi/protobuf@4.24.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'protobuf',
+        path: '/venv/lib/python3.9/site-packages/protobuf',
+        license: 'BSD-3-Clause',
+        manager: 'pip',
+      },
+      {
+        name: 'onnx',
+        version: '1.14.0',
+        purl: 'pkg:pypi/onnx@1.14.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'onnx',
+        path: '/venv/lib/python3.9/site-packages/onnx',
+        license: 'MIT',
+        manager: 'pip',
+      },
+      {
+        name: 'tqdm',
+        version: '4.65.0',
+        purl: 'pkg:pypi/tqdm@4.65.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'tqdm',
+        path: '/venv/lib/python3.9/site-packages/tqdm',
+        license: 'MIT',
+        manager: 'pip',
+      },
+      {
+        name: 'psutil',
+        version: '5.9.0',
+        purl: 'pkg:pypi/psutil@5.9.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'psutil',
+        path: '/venv/lib/python3.9/site-packages/psutil',
+        license: 'BSD-3-Clause',
+        manager: 'pip',
+      },
+      {
+        name: 'pyyaml',
+        version: '6.0',
+        purl: 'pkg:pypi/pyyaml@6.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'pyyaml',
+        path: '/venv/lib/python3.9/site-packages/pyyaml',
+        license: 'MIT',
+        manager: 'pip',
+      },
+      {
+        name: 'h5py',
+        version: '3.9.0',
+        purl: 'pkg:pypi/h5py@3.9.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'h5py',
+        path: '/venv/lib/python3.9/site-packages/h5py',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'networkx',
+        version: '3.1',
+        purl: 'pkg:pypi/networkx@3.1',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'networkx',
+        path: '/venv/lib/python3.9/site-packages/networkx',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'sympy',
+        version: '1.12',
+        purl: 'pkg:pypi/sympy@1.12',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'sympy',
+        path: '/venv/lib/python3.9/site-packages/sympy',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'scikit-learn',
+        version: '1.3.0',
+        purl: 'pkg:pypi/scikit-learn@1.3.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'scikit-learn',
+        path: '/venv/lib/python3.9/site-packages/scikit-learn',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'jupyter',
+        version: '1.0.0',
+        purl: 'pkg:pypi/jupyter@1.0.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'jupyter',
+        path: '/venv/lib/python3.9/site-packages/jupyter',
+        license: 'BSD',
+        manager: 'pip',
+      },
+    ],
+    summary: { total: 718, packages: 718, managers: 3, licenses: 15 },
+    pieData: [
+      { name: 'npm', value: 150, color: '#5b8def' },
+      { name: 'pip', value: 520, color: '#8b5cf6' },
+      { name: 'go', value: 48, color: '#10b981' },
+    ],
+  },
+  'repo-llama': {
+    name: 'Meta Llama',
+    components: [
+      {
+        name: 'llama',
+        version: '3.1',
+        purl: 'pkg:pypi/llama@3.1',
+        ecosystem: 'pypi',
+        level: 'direct' as const,
+        package: 'llama',
+        path: '/venv/lib/python3.9/site-packages/llama',
+        license: 'Custom',
+        manager: 'pip',
+      },
+    ],
+    summary: { total: 1, packages: 1, managers: 1, licenses: 1 },
+    pieData: [
+      { name: 'pip', value: 1, color: '#8b5cf6' },
+    ],
+  },
+  'repo-kafka-python': {
+    name: 'Kafka Python',
+    components: [
+      {
+        name: 'kafka-python',
+        version: '2.0.2',
+        purl: 'pkg:pypi/kafka-python@2.0.2',
+        ecosystem: 'pypi',
+        level: 'direct' as const,
+        package: 'kafka-python',
+        path: '/venv/lib/python3.9/site-packages/kafka-python',
+        license: 'Apache-2.0',
+        manager: 'pip',
+      },
+      {
+        name: 'zope.interface',
+        version: '6.0',
+        purl: 'pkg:pypi/zope.interface@6.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'zope.interface',
+        path: '/venv/lib/python3.9/site-packages/zope/interface',
+        license: 'ZPL-2.1',
+        manager: 'pip',
+      },
+      {
+        name: 'lxml',
+        version: '4.9.0',
+        purl: 'pkg:pypi/lxml@4.9.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'lxml',
+        path: '/venv/lib/python3.9/site-packages/lxml',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'six',
+        version: '1.16.0',
+        purl: 'pkg:pypi/six@1.16.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'six',
+        path: '/venv/lib/python3.9/site-packages/six',
+        license: 'MIT',
+        manager: 'pip',
+      },
+      {
+        name: 'python-dateutil',
+        version: '2.8.2',
+        purl: 'pkg:pypi/python-dateutil@2.8.2',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'python-dateutil',
+        path: '/venv/lib/python3.9/site-packages/dateutil',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'pytz',
+        version: '2023.3',
+        purl: 'pkg:pypi/pytz@2023.3',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'pytz',
+        path: '/venv/lib/python3.9/site-packages/pytz',
+        license: 'MIT',
+        manager: 'pip',
+      },
+      {
+        name: 'certifi',
+        version: '2023.7.22',
+        purl: 'pkg:pypi/certifi@2023.7.22',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'certifi',
+        path: '/venv/lib/python3.9/site-packages/certifi',
+        license: 'MPL-2.0',
+        manager: 'pip',
+      },
+      {
+        name: 'charset-normalizer',
+        version: '3.2.0',
+        purl: 'pkg:pypi/charset-normalizer@3.2.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'charset-normalizer',
+        path: '/venv/lib/python3.9/site-packages/charset_normalizer',
+        license: 'MIT',
+        manager: 'pip',
+      },
+      {
+        name: 'idna',
+        version: '3.4',
+        purl: 'pkg:pypi/idna@3.4',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'idna',
+        path: '/venv/lib/python3.9/site-packages/idna',
+        license: 'BSD-3-Clause',
+        manager: 'pip',
+      },
+      {
+        name: 'urllib3',
+        version: '1.26.16',
+        purl: 'pkg:pypi/urllib3@1.26.16',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'urllib3',
+        path: '/venv/lib/python3.9/site-packages/urllib3',
+        license: 'MIT',
+        manager: 'pip',
+      },
+    ],
+    summary: { total: 12, packages: 12, managers: 1, licenses: 8 },
+    pieData: [
+      { name: 'pip', value: 12, color: '#8b5cf6' },
+    ],
+  },
+  'repo-probabilistic-forecasts': {
+    name: 'Probabilistic Forecasts Attacks',
     components: [
       {
         name: 'numpy',
@@ -44,6 +415,50 @@ const repoDataMap: Record<string, any> = {
         manager: 'pip',
       },
       {
+        name: 'matplotlib',
+        version: '3.7.0',
+        purl: 'pkg:pypi/matplotlib@3.7.0',
+        ecosystem: 'pypi',
+        level: 'direct' as const,
+        package: 'matplotlib',
+        path: '/venv/lib/python3.9/site-packages/matplotlib',
+        license: 'PSF',
+        manager: 'pip',
+      },
+      {
+        name: 'pandas',
+        version: '2.0.0',
+        purl: 'pkg:pypi/pandas@2.0.0',
+        ecosystem: 'pypi',
+        level: 'direct' as const,
+        package: 'pandas',
+        path: '/venv/lib/python3.9/site-packages/pandas',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'scikit-learn',
+        version: '1.3.0',
+        purl: 'pkg:pypi/scikit-learn@1.3.0',
+        ecosystem: 'pypi',
+        level: 'direct' as const,
+        package: 'scikit-learn',
+        path: '/venv/lib/python3.9/site-packages/scikit-learn',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'tensorflow',
+        version: '2.14.0',
+        purl: 'pkg:pypi/tensorflow@2.14.0',
+        ecosystem: 'pypi',
+        level: 'direct' as const,
+        package: 'tensorflow',
+        path: '/venv/lib/python3.9/site-packages/tensorflow',
+        license: 'Apache-2.0',
+        manager: 'pip',
+      },
+      {
         name: 'torch',
         version: '2.4.1',
         purl: 'pkg:pypi/torch@2.4.1',
@@ -55,98 +470,51 @@ const repoDataMap: Record<string, any> = {
         manager: 'pip',
       },
       {
-        name: 'transformers',
-        version: '4.46.3',
-        purl: 'pkg:pypi/transformers@4.46.3',
+        name: 'jupyter',
+        version: '1.0.0',
+        purl: 'pkg:pypi/jupyter@1.0.0',
         ecosystem: 'pypi',
         level: 'transitive' as const,
-        package: 'transformers',
-        path: '/venv/lib/python3.9/site-packages/transformers',
-        license: 'Apache-2.0',
-        manager: 'pip',
-      },
-    ],
-    summary: { total: 89, packages: 89, managers: 2, licenses: 8 },
-    pieData: [
-      { name: 'npm', value: 20, color: '#5b8def' },
-      { name: 'pip', value: 65, color: '#8b5cf6' },
-      { name: 'go', value: 4, color: '#10b981' },
-    ],
-  },
-  'repo-llama-001': {
-    name: 'Meta Llama',
-    components: [
-      {
-        name: 'react',
-        version: '18.2.0',
-        purl: 'pkg:npm/react@18.2.0',
-        ecosystem: 'npm',
-        level: 'direct' as const,
-        package: 'react',
-        path: '/node_modules/react',
-        license: 'MIT',
-        manager: 'npm',
-      },
-      {
-        name: 'next',
-        version: '14.0.0',
-        purl: 'pkg:npm/next@14.0.0',
-        ecosystem: 'npm',
-        level: 'direct' as const,
-        package: 'next',
-        path: '/node_modules/next',
-        license: 'MIT',
-        manager: 'npm',
-      },
-      {
-        name: 'lodash',
-        version: '4.17.21',
-        purl: 'pkg:npm/lodash@4.17.21',
-        ecosystem: 'npm',
-        level: 'transitive' as const,
-        package: 'lodash',
-        path: '/node_modules/next/node_modules/lodash',
-        license: 'MIT',
-        manager: 'npm',
-      },
-      {
-        name: 'django',
-        version: '4.2.0',
-        purl: 'pkg:pypi/django@4.2.0',
-        ecosystem: 'pypi',
-        level: 'direct' as const,
-        package: 'django',
-        path: '/venv/lib/python3.9/site-packages/django',
+        package: 'jupyter',
+        path: '/venv/lib/python3.9/site-packages/jupyter',
         license: 'BSD',
         manager: 'pip',
       },
       {
-        name: 'requests',
-        version: '2.31.0',
-        purl: 'pkg:pypi/requests@2.31.0',
+        name: 'notebook',
+        version: '7.0.0',
+        purl: 'pkg:pypi/notebook@7.0.0',
         ecosystem: 'pypi',
         level: 'transitive' as const,
-        package: 'requests',
-        path: '/venv/lib/python3.9/site-packages/requests',
-        license: 'Apache-2.0',
+        package: 'notebook',
+        path: '/venv/lib/python3.9/site-packages/notebook',
+        license: 'BSD',
+        manager: 'pip',
+      },
+      {
+        name: 'ipykernel',
+        version: '6.25.0',
+        purl: 'pkg:pypi/ipykernel@6.25.0',
+        ecosystem: 'pypi',
+        level: 'transitive' as const,
+        package: 'ipykernel',
+        path: '/venv/lib/python3.9/site-packages/ipykernel',
+        license: 'BSD',
         manager: 'pip',
       },
     ],
-    summary: { total: 123, packages: 123, managers: 3, licenses: 12 },
+    summary: { total: 47, packages: 47, managers: 1, licenses: 6 },
     pieData: [
-      { name: 'npm', value: 80, color: '#5b8def' },
-      { name: 'pip', value: 30, color: '#8b5cf6' },
-      { name: 'go', value: 10, color: '#10b981' },
-      { name: 'other', value: 3, color: '#f59e0b' },
+      { name: 'pip', value: 47, color: '#8b5cf6' },
     ],
   },
   // 可以添加更多repo的数据
 };
 
 interface Props {
-  params: {
+  params: Promise<{
     repo: string;
-  };
+  }>;
 }
 
 export default function SBOMPage({ params }: Props) {
@@ -157,24 +525,51 @@ export default function SBOMPage({ params }: Props) {
   const [filterManager, setFilterManager] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [repoName, setRepoName] = useState<string>('');
+  const itemsPerPage = 20;
 
-  const repo = params.repo as string;
+  const resolvedParams = use(params);
+  const repo = resolvedParams.repo as string;
 
   useEffect(() => {
-    // 根据repo参数获取数据
-    const repoData = repoDataMap[repo];
-    if (repoData) {
-      setComponents(repoData.components);
-      setSummary(repoData.summary);
-      setPieData(repoData.pieData);
-    } else {
-      // 如果没有找到数据，使用默认数据
-      const defaultData = repoDataMap['repo-pytorch-002'];
-      setComponents(defaultData.components);
-      setSummary(defaultData.summary);
-      setPieData(defaultData.pieData);
-    }
+    const loadSBOMData = async () => {
+      try {
+        // 首先尝试加载真实的SBOM数据
+        const sbomData = await getSBOMData(repo);
+        if (sbomData) {
+          setComponents(sbomData.components);
+          setSummary(sbomData.summary);
+          setPieData(sbomData.pieData);
+          setRepoName(sbomData.name);
+        } else {
+          // 如果真实数据加载失败，使用模拟数据作为备用
+          const repoData = repoDataMap[repo];
+          if (repoData) {
+            setComponents(repoData.components);
+            setSummary(repoData.summary);
+            setPieData(repoData.pieData);
+            setRepoName(repoData.name);
+          } else {
+            // 如果没有找到数据，使用默认数据
+            const defaultData = repoDataMap['repo-pytorch'];
+            setComponents(defaultData.components);
+            setSummary(defaultData.summary);
+            setPieData(defaultData.pieData);
+            setRepoName(defaultData.name);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading SBOM data:', error);
+        // 出错时使用模拟数据
+        const repoData = repoDataMap[repo] || repoDataMap['repo-pytorch'];
+        setComponents(repoData.components);
+        setSummary(repoData.summary);
+        setPieData(repoData.pieData);
+        setRepoName(repoData.name);
+      }
+    };
+
+    loadSBOMData();
   }, [repo]);
 
   const filteredComponents = components.filter((comp) => {
@@ -233,7 +628,7 @@ export default function SBOMPage({ params }: Props) {
               🏠 返回首页
             </button>
             <h1 className="text-2xl font-bold text-gradient">
-              SBOM 清单 - {repoDataMap[repo]?.name || repo}
+              SBOM 清单 - {repoName || repoDataMap[repo]?.name || repo}
             </h1>
           </div>
           <div className="flex gap-2">
@@ -313,7 +708,7 @@ export default function SBOMPage({ params }: Props) {
               />
             </div>
             <div className="flex gap-2">
-              {['all', 'npm', 'pip', 'go'].map((manager) => (
+              {['all', ...new Set(components.map(c => c.manager))].map((manager) => (
                 <button
                   key={manager}
                   onClick={() => setFilterManager(manager)}
@@ -379,7 +774,19 @@ export default function SBOMPage({ params }: Props) {
                             ? 'bg-[#5b8def]/20 text-[#5b8def]'
                             : component.manager === 'pip'
                             ? 'bg-purple-600/20 text-purple-400'
-                            : 'bg-green-600/20 text-green-400'
+                            : component.manager === 'go'
+                            ? 'bg-green-600/20 text-green-400'
+                            : component.manager === 'maven'
+                            ? 'bg-yellow-600/20 text-yellow-400'
+                            : component.manager === 'nuget'
+                            ? 'bg-red-600/20 text-red-400'
+                            : component.manager === 'cargo'
+                            ? 'bg-orange-600/20 text-orange-400'
+                            : component.manager === 'composer'
+                            ? 'bg-cyan-600/20 text-cyan-400'
+                            : component.manager === 'gem'
+                            ? 'bg-pink-600/20 text-pink-400'
+                            : 'bg-gray-600/20 text-gray-400'
                         }`}
                       >
                         {component.manager}

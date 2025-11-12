@@ -11,9 +11,22 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { getRepositoryId, getRepositoryName } from '@/lib/repo-ids';
 
 // 简单的内存存储（临时解决方案）
-const scanResults = new Map<string, any>();
+interface ScanData {
+  repoName?: string;
+  // 可以添加其他扫描数据字段
+}
 
-function storeScanResult(repoUrl: string, data: any): string {
+interface ScanResult {
+  id: string;
+  repoUrl: string;
+  repoName: string;
+  timestamp: number;
+  data: ScanData;
+}
+
+const scanResults = new Map<string, ScanResult>();
+
+function storeScanResult(repoUrl: string, data: ScanData): string {
   const id = `scan-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   scanResults.set(id, {
     id,

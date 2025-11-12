@@ -69,7 +69,7 @@ export default function ScanResultPage() {
     );
   }
 
-  if (error) {
+  if (error || !scanResult) {
     return (
       <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
         <header className="border-b border-[var(--border)] bg-[var(--card)]/50 backdrop-blur-sm">
@@ -115,7 +115,7 @@ export default function ScanResultPage() {
             <div>
               <h1 className="text-2xl font-bold text-gradient">扫描结果</h1>
               <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                {scanResult.repoName} • 扫描ID: {scanResult.scanId}
+                {scanResult?.repoName} • 扫描ID: {scanResult?.scanId}
               </p>
             </div>
           </div>
@@ -131,16 +131,16 @@ export default function ScanResultPage() {
         <div className="mb-6 bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
           <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--muted-foreground)]">
             <div>
-              <span className="font-medium">扫描ID:</span> {scanResult.scanId}
+              <span className="font-medium">扫描ID:</span> {scanResult?.scanId}
             </div>
             <div>
-              <span className="font-medium">仓库:</span> {scanResult.repoName}
+              <span className="font-medium">仓库:</span> {scanResult?.repoName}
             </div>
             <div>
-              <span className="font-medium">扫描时间:</span> {new Date(scanResult.timestamp).toLocaleString()}
+              <span className="font-medium">扫描时间:</span> {scanResult?.timestamp ? new Date(scanResult.timestamp).toLocaleString() : 'N/A'}
             </div>
             <div>
-              <span className="font-medium">仓库ID:</span> {scanResult.repoId}
+              <span className="font-medium">仓库ID:</span> {scanResult?.repoId}
             </div>
           </div>
         </div>
@@ -149,11 +149,11 @@ export default function ScanResultPage() {
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">安全性与可靠性画像</h2>
           <OverviewCard
-            totalComponents={scanResult.totalComponents}
-            licensedComponents={scanResult.licensedComponents}
-            vulnerabilities={scanResult.vulnerabilities}
-            riskLevel={scanResult.riskLevel}
-            overallScore={scanResult.overallScore}
+            totalComponents={scanResult?.totalComponents || 0}
+            licensedComponents={scanResult?.licensedComponents || 0}
+            vulnerabilities={scanResult?.vulnerabilities || 0}
+            riskLevel={scanResult?.riskLevel || '未知'}
+            overallScore={scanResult?.overallScore || 0}
           />
         </div>
 
@@ -161,13 +161,13 @@ export default function ScanResultPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
           <ModuleEntryCard
             title="SBOM 清单"
-            description={`${scanResult.sbomSummary.total} 个组件`}
+            description={`${scanResult?.sbomSummary?.total || 0} 个组件`}
             icon="📦"
-            href={`/sbom/${scanResult.repoId}`}
+            href={`/sbom/${scanResult?.repoId || ''}`}
             data={{
-              npm: scanResult.sbomSummary.npm,
-              pip: scanResult.sbomSummary.pip,
-              other: scanResult.sbomSummary.other,
+              npm: scanResult?.sbomSummary?.npm || 0,
+              pip: scanResult?.sbomSummary?.pip || 0,
+              other: scanResult?.sbomSummary?.other || 0,
             }}
             chartType="pie"
           />
@@ -176,10 +176,10 @@ export default function ScanResultPage() {
             title="代码风险检测"
             description="许可证、漏洞、投毒风险"
             icon="🔍"
-            href={`/code-risk/${scanResult.repoId}`}
+            href={`/code-risk/${scanResult?.repoId || ''}`}
             data={{
               license: 12,
-              vulnerability: scanResult.vulnerabilities,
+              vulnerability: scanResult?.vulnerabilities || 0,
               poisoning: 8,
             }}
             chartType="risk-radar"
@@ -187,9 +187,9 @@ export default function ScanResultPage() {
 
           <ModuleEntryCard
             title="开发者画像"
-            description={`${scanResult.contributors} 个贡献者`}
+            description={`${scanResult?.contributors || 0} 个贡献者`}
             icon="👥"
-            href={`/developer/${scanResult.repoId}`}
+            href={`/developer/${scanResult?.repoId || ''}`}
             data={{
               commits: 320,
               prs: 45,

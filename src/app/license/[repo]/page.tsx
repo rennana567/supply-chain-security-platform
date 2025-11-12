@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import PieChart3D from '@/components/PieChart3D';
+import { loadLicenseData } from '@/lib/data-loader';
 
 interface LicenseData {
   name: string;
@@ -14,7 +15,7 @@ interface LicenseData {
   description: string;
 }
 
-// 基于检测结果目录的mock数据映射
+// 模拟数据映射（作为备用）
 const repoLicenseDataMap: Record<string, {
   name: string;
   licenses: LicenseData[];
@@ -31,14 +32,23 @@ const repoLicenseDataMap: Record<string, {
       { name: 'Apache-2.0', version: '2.0', license: 'Apache-2.0', compatibility: 'compatible', description: '开源许可证，允许商业使用' },
       { name: 'MIT', version: '1.0', license: 'MIT', compatibility: 'compatible', description: '宽松的开源许可证' },
       { name: 'GPL-3.0', version: '3.0', license: 'GPL-3.0', compatibility: 'conflict', description: '与Apache-2.0存在冲突' },
+      { name: 'BSD-3-Clause', version: '3.0', license: 'BSD-3-Clause', compatibility: 'compatible', description: 'BSD许可证变体' },
+      { name: 'LGPL-2.1', version: '2.1', license: 'LGPL-2.1', compatibility: 'compatible', description: '较宽松的GPL许可证' },
+      { name: 'MPL-2.0', version: '2.0', license: 'MPL-2.0', compatibility: 'compatible', description: 'Mozilla公共许可证' },
+      { name: 'EPL-2.0', version: '2.0', license: 'EPL-2.0', compatibility: 'conflict', description: 'Eclipse公共许可证' },
+      { name: 'CDDL-1.1', version: '1.1', license: 'CDDL-1.1', compatibility: 'compatible', description: '通用开发和分发许可证' },
+      { name: 'AGPL-3.0', version: '3.0', license: 'AGPL-3.0', compatibility: 'conflict', description: 'Affero GPL许可证' },
+      { name: 'Artistic-2.0', version: '2.0', license: 'Artistic-2.0', compatibility: 'compatible', description: '艺术许可证' },
     ],
     summary: { total: 15, compatible: 12, conflict: 2, undeclared: 1 },
   },
-  'repo-vue-django': {
-    name: 'Vue Django Book Shop',
+  'repo-vue-django-bookshop': {
+    name: 'Vue Django BookShop',
     licenses: [
       { name: 'MIT', version: '1.0', license: 'MIT', compatibility: 'compatible', description: '宽松的开源许可证' },
       { name: 'BSD-3-Clause', version: '3.0', license: 'BSD-3-Clause', compatibility: 'compatible', description: 'BSD许可证变体' },
+      { name: 'Apache-2.0', version: '2.0', license: 'Apache-2.0', compatibility: 'compatible', description: '开源许可证，允许商业使用' },
+      { name: 'GPL-2.0', version: '2.0', license: 'GPL-2.0', compatibility: 'conflict', description: '与MIT存在冲突' },
     ],
     summary: { total: 8, compatible: 7, conflict: 1, undeclared: 0 },
   },
@@ -47,6 +57,9 @@ const repoLicenseDataMap: Record<string, {
     licenses: [
       { name: 'Apache-2.0', version: '2.0', license: 'Apache-2.0', compatibility: 'compatible', description: '开源许可证，允许商业使用' },
       { name: 'LGPL-2.1', version: '2.1', license: 'LGPL-2.1', compatibility: 'compatible', description: '较宽松的GPL许可证' },
+      { name: 'MIT', version: '1.0', license: 'MIT', compatibility: 'compatible', description: '宽松的开源许可证' },
+      { name: 'BSD-2-Clause', version: '2.0', license: 'BSD-2-Clause', compatibility: 'compatible', description: 'BSD许可证变体' },
+      { name: 'GPL-3.0', version: '3.0', license: 'GPL-3.0', compatibility: 'conflict', description: '与Apache-2.0存在冲突' },
     ],
     summary: { total: 22, compatible: 18, conflict: 3, undeclared: 1 },
   },
@@ -55,6 +68,8 @@ const repoLicenseDataMap: Record<string, {
     licenses: [
       { name: 'MIT', version: '1.0', license: 'MIT', compatibility: 'compatible', description: '宽松的开源许可证' },
       { name: 'GPL-2.0', version: '2.0', license: 'GPL-2.0', compatibility: 'conflict', description: '与MIT存在冲突' },
+      { name: 'Apache-2.0', version: '2.0', license: 'Apache-2.0', compatibility: 'compatible', description: '开源许可证，允许商业使用' },
+      { name: 'BSD-3-Clause', version: '3.0', license: 'BSD-3-Clause', compatibility: 'compatible', description: 'BSD许可证变体' },
     ],
     summary: { total: 11, compatible: 9, conflict: 1, undeclared: 1 },
   },
@@ -63,46 +78,57 @@ const repoLicenseDataMap: Record<string, {
     licenses: [
       { name: 'Apache-2.0', version: '2.0', license: 'Apache-2.0', compatibility: 'compatible', description: '开源许可证，允许商业使用' },
       { name: 'BSD-2-Clause', version: '2.0', license: 'BSD-2-Clause', compatibility: 'compatible', description: 'BSD许可证变体' },
+      { name: 'MIT', version: '1.0', license: 'MIT', compatibility: 'compatible', description: '宽松的开源许可证' },
+      { name: 'LGPL-3.0', version: '3.0', license: 'LGPL-3.0', compatibility: 'compatible', description: '较宽松的GPL许可证' },
+      { name: 'GPL-3.0', version: '3.0', license: 'GPL-3.0', compatibility: 'conflict', description: '与Apache-2.0存在冲突' },
     ],
     summary: { total: 18, compatible: 15, conflict: 2, undeclared: 1 },
   },
-  'repo-pytorch-002': {
+  'repo-pytorch': {
     name: 'PyTorch',
     licenses: [
       { name: 'BSD-3-Clause', version: '3.0', license: 'BSD-3-Clause', compatibility: 'compatible', description: 'BSD许可证变体' },
       { name: 'MIT', version: '1.0', license: 'MIT', compatibility: 'compatible', description: '宽松的开源许可证' },
+      { name: 'Apache-2.0', version: '2.0', license: 'Apache-2.0', compatibility: 'compatible', description: '开源许可证，允许商业使用' },
+      { name: 'GPL-2.0', version: '2.0', license: 'GPL-2.0', compatibility: 'conflict', description: '与MIT存在冲突' },
+      { name: 'LGPL-2.1', version: '2.1', license: 'LGPL-2.1', compatibility: 'compatible', description: '较宽松的GPL许可证' },
     ],
     summary: { total: 25, compatible: 22, conflict: 2, undeclared: 1 },
   },
-  'repo-llama-001': {
+  'repo-llama': {
     name: 'Meta Llama',
     licenses: [
       { name: 'Custom', version: '1.0', license: 'Llama Community License', compatibility: 'compatible', description: 'Meta自定义许可证' },
       { name: 'MIT', version: '1.0', license: 'MIT', compatibility: 'compatible', description: '宽松的开源许可证' },
+      { name: 'Apache-2.0', version: '2.0', license: 'Apache-2.0', compatibility: 'compatible', description: '开源许可证，允许商业使用' },
     ],
     summary: { total: 12, compatible: 10, conflict: 1, undeclared: 1 },
   },
-  'repo-tensorflow-003': {
+  'repo-tensorflow': {
     name: 'TensorFlow',
     licenses: [
       { name: 'Apache-2.0', version: '2.0', license: 'Apache-2.0', compatibility: 'compatible', description: '开源许可证，允许商业使用' },
       { name: 'BSD-3-Clause', version: '3.0', license: 'BSD-3-Clause', compatibility: 'compatible', description: 'BSD许可证变体' },
+      { name: 'MIT', version: '1.0', license: 'MIT', compatibility: 'compatible', description: '宽松的开源许可证' },
+      { name: 'GPL-3.0', version: '3.0', license: 'GPL-3.0', compatibility: 'conflict', description: '与Apache-2.0存在冲突' },
+      { name: 'LGPL-2.1', version: '2.1', license: 'LGPL-2.1', compatibility: 'compatible', description: '较宽松的GPL许可证' },
     ],
     summary: { total: 30, compatible: 26, conflict: 3, undeclared: 1 },
   },
-  'repo-react-004': {
-    name: 'React',
+  'repo-deepseek-v3': {
+    name: 'DeepSeek V3',
     licenses: [
-      { name: 'MIT', version: '1.0', license: 'MIT', compatibility: 'compatible', description: '宽松的开源许可证' },
       { name: 'Apache-2.0', version: '2.0', license: 'Apache-2.0', compatibility: 'compatible', description: '开源许可证，允许商业使用' },
+      { name: 'MIT', version: '1.0', license: 'MIT', compatibility: 'compatible', description: '宽松的开源许可证' },
     ],
     summary: { total: 14, compatible: 12, conflict: 1, undeclared: 1 },
   },
-  'repo-nodejs-005': {
-    name: 'Node.js',
+  'repo-mistral-inference': {
+    name: 'Mistral Inference',
     licenses: [
+      { name: 'Apache-2.0', version: '2.0', license: 'Apache-2.0', compatibility: 'compatible', description: '开源许可证，允许商业使用' },
       { name: 'MIT', version: '1.0', license: 'MIT', compatibility: 'compatible', description: '宽松的开源许可证' },
-      { name: 'ISC', version: '1.0', license: 'ISC', compatibility: 'compatible', description: '类似MIT的许可证' },
+      { name: 'BSD-3-Clause', version: '3.0', license: 'BSD-3-Clause', compatibility: 'compatible', description: 'BSD许可证变体' },
     ],
     summary: { total: 20, compatible: 17, conflict: 2, undeclared: 1 },
   },
@@ -128,27 +154,71 @@ export default function LicenseDetailPage({ params }: Props) {
     licenses: [],
     summary: { total: 0, compatible: 0, conflict: 0, undeclared: 0 },
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [repoName, setRepoName] = useState<string>('');
+  const itemsPerPage = 20;
 
   const resolvedParams = use(params);
   const repo = resolvedParams.repo as string;
 
   useEffect(() => {
-    // 根据repo参数获取数据
-    const repoData = repoLicenseDataMap[repo];
-    if (repoData) {
-      setLicenseData({
-        licenses: repoData.licenses,
-        summary: repoData.summary,
-      });
-    } else {
-      // 如果没有找到数据，使用默认数据
-      const defaultData = repoLicenseDataMap['repo-pytorch-002'];
-      setLicenseData({
-        licenses: defaultData.licenses,
-        summary: defaultData.summary,
-      });
+    async function fetchLicenseData() {
+      try {
+        const data = await loadLicenseData(repo);
+        if (data) {
+          setLicenseData({
+            licenses: data.licenses,
+            summary: data.summary,
+          });
+          // 设置仓库名称
+          const repoNameMap: Record<string, string> = {
+            'repo-kafka-python': 'Kafka Python',
+            'repo-xiangtian-workbench': 'Xiangtian Workbench',
+            'repo-wumei-smart': 'Wumei Smart',
+            'repo-probabilistic-forecasts': 'Probabilistic Forecasts Attacks',
+            'repo-vue-django-bookshop': 'Vue Django BookShop',
+            'repo-pytorch': 'PyTorch',
+            'repo-tensorflow': 'TensorFlow',
+            'repo-deepseek-v3': 'DeepSeek V3',
+            'repo-llama': 'Meta Llama',
+            'repo-mistral-inference': 'Mistral Inference'
+          };
+          setRepoName(repoNameMap[repo] || repo);
+        } else {
+          // 如果加载失败，使用默认数据作为备用
+          const defaultData = repoLicenseDataMap['repo-pytorch'];
+          setLicenseData({
+            licenses: defaultData.licenses,
+            summary: defaultData.summary,
+          });
+          setRepoName(defaultData.name);
+        }
+      } catch (error) {
+        console.error('Error loading license data:', error);
+        // 出错时使用默认数据
+        const defaultData = repoLicenseDataMap['repo-pytorch'];
+        setLicenseData({
+          licenses: defaultData.licenses,
+          summary: defaultData.summary,
+        });
+        setRepoName(defaultData.name);
+      }
     }
+
+    fetchLicenseData();
   }, [repo]);
+
+  const filteredLicenses = licenseData.licenses.filter((license) =>
+    license.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    license.license.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredLicenses.length / itemsPerPage);
+  const paginatedLicenses = filteredLicenses.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const getCompatibilityColor = (compatibility: string) => {
     switch (compatibility) {
@@ -194,12 +264,9 @@ export default function LicenseDetailPage({ params }: Props) {
             >
               🏠 返回首页
             </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gradient">
-                许可证合规性检测 - {repoLicenseDataMap[resolvedParams.repo]?.name || resolvedParams.repo}
-              </h1>
-              <p className="text-sm text-[var(--muted-foreground)] mt-1">详细的许可证合规性分析</p>
-            </div>
+            <h1 className="text-2xl font-bold text-gradient">
+              许可证合规性检测 - {repoName || repoLicenseDataMap[repo]?.name || repo}
+            </h1>
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
@@ -265,12 +332,27 @@ export default function LicenseDetailPage({ params }: Props) {
           </div>
         </div>
 
+        {/* Search and Filters */}
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="搜索许可证名称或类型..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 bg-[var(--input)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* License Details Table */}
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden">
           <div className="p-6 border-b border-[var(--border)]">
             <h2 className="text-xl font-semibold">许可证详情</h2>
             <p className="text-sm text-[var(--muted-foreground)] mt-1">
-              项目中使用到的所有许可证及其合规性状态
+              项目中使用到的所有许可证及其合规性状态 ({filteredLicenses.length} 个许可证)
             </p>
           </div>
 
@@ -286,7 +368,7 @@ export default function LicenseDetailPage({ params }: Props) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
-                {licenseData.licenses.map((license, index) => (
+                {paginatedLicenses.map((license, index) => (
                   <tr key={index} className="hover:bg-[var(--input)] transition-colors">
                     <td className="px-4 py-3 text-sm font-medium">{license.name}</td>
                     <td className="px-4 py-3 text-sm text-[var(--muted-foreground)]">{license.version}</td>
@@ -307,8 +389,41 @@ export default function LicenseDetailPage({ params }: Props) {
             </table>
           </div>
 
-          {licenseData.licenses.length === 0 && (
-            <div className="text-center py-12 text-[var(--muted-foreground)]">没有找到许可证数据</div>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 p-4 border-t border-[var(--border)]">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded bg-[var(--input)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                上一页
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === page
+                      ? 'bg-[var(--primary)] text-white'
+                      : 'bg-[var(--input)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded bg-[var(--input)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                下一页
+              </button>
+            </div>
+          )}
+
+          {filteredLicenses.length === 0 && (
+            <div className="text-center py-12 text-[var(--muted-foreground)]">没有找到匹配的许可证</div>
           )}
         </div>
 

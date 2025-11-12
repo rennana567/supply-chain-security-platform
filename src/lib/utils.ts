@@ -81,14 +81,14 @@ export function getRiskLabel(risk: string): string {
 }
 
 // 导出 CSV
-export function exportToCSV(data: any[], filename: string): void {
+export function exportToCSV(data: unknown[], filename: string): void {
   if (data.length === 0) return;
 
-  const headers = Object.keys(data[0]);
+  const headers = Object.keys(data[0] as Record<string, unknown>);
   const csv = [
     headers.join(','),
     ...data.map((row) =>
-      headers.map((header) => JSON.stringify(row[header] || '')).join(',')
+      headers.map((header) => JSON.stringify((row as Record<string, unknown>)[header] || '')).join(',')
     ),
   ].join('\n');
 
@@ -102,7 +102,7 @@ export function exportToCSV(data: any[], filename: string): void {
 }
 
 // 导出 JSON
-export function exportToJSON(data: any, filename: string): void {
+export function exportToJSON(data: unknown, filename: string): void {
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);

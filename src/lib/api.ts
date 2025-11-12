@@ -56,7 +56,7 @@ export const licenseApi = {
 
 // Vulnerability API
 export const vulnApi = {
-  scan: (data: { repoUrl?: string; sbomData?: any }) =>
+  scan: (data: { repoUrl?: string; sbomData?: unknown }) =>
     request('/vuln/scan', {
       method: 'POST',
       body: JSON.stringify(data),

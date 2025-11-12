@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { loadPoisonData } from '@/lib/data-loader';
 
 interface PoisoningData {
   id: string;
@@ -137,7 +138,7 @@ const repoPoisoningDataMap: Record<string, {
     ],
     summary: { tasks: 10, malicious: 2, benign: 7, suspicious: 1 },
   },
-  'repo-pytorch-002': {
+  'repo-pytorch': {
     name: 'PyTorch',
     poisonings: [
       {
@@ -163,7 +164,7 @@ const repoPoisoningDataMap: Record<string, {
     ],
     summary: { tasks: 15, malicious: 4, benign: 10, suspicious: 1 },
   },
-  'repo-llama-001': {
+  'repo-llama': {
     name: 'Meta Llama',
     poisonings: [
       {
@@ -179,7 +180,7 @@ const repoPoisoningDataMap: Record<string, {
     ],
     summary: { tasks: 8, malicious: 2, benign: 5, suspicious: 1 },
   },
-  'repo-tensorflow-003': {
+  'repo-tensorflow': {
     name: 'TensorFlow',
     poisonings: [
       {
@@ -205,12 +206,12 @@ const repoPoisoningDataMap: Record<string, {
     ],
     summary: { tasks: 20, malicious: 5, benign: 14, suspicious: 1 },
   },
-  'repo-react-004': {
-    name: 'React',
+  'repo-deepseek-v3': {
+    name: 'DeepSeek V3',
     poisonings: [
       {
         id: 'POI-014',
-        package: 'react-utils',
+        package: 'deepseek-utils',
         version: '3.1.0',
         riskLevel: 'low',
         detection: '可疑组件行为',
@@ -221,12 +222,12 @@ const repoPoisoningDataMap: Record<string, {
     ],
     summary: { tasks: 7, malicious: 1, benign: 5, suspicious: 1 },
   },
-  'repo-nodejs-005': {
-    name: 'Node.js',
+  'repo-mistral-inference': {
+    name: 'Mistral Inference',
     poisonings: [
       {
         id: 'POI-015',
-        package: 'node-utils',
+        package: 'mistral-utils',
         version: '2.2.1',
         riskLevel: 'high',
         detection: '恶意脚本注入',
@@ -240,9 +241,9 @@ const repoPoisoningDataMap: Record<string, {
 };
 
 interface Props {
-  params: {
+  params: Promise<{
     repo: string;
-  };
+  }>;
 }
 
 export default function PoisoningDetailPage({ params }: Props) {
@@ -259,26 +260,88 @@ export default function PoisoningDetailPage({ params }: Props) {
     poisonings: [],
     summary: { tasks: 0, malicious: 0, benign: 0, suspicious: 0 },
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [repoName, setRepoName] = useState<string>('');
+  const itemsPerPage = 20;
 
-  const repo = params.repo as string;
+  const resolvedParams = use(params);
+  const repo = resolvedParams.repo as string;
 
   useEffect(() => {
-    // 根据repo参数获取数据
-    const repoData = repoPoisoningDataMap[repo];
-    if (repoData) {
-      setPoisoningData({
-        poisonings: repoData.poisonings,
-        summary: repoData.summary,
-      });
-    } else {
-      // 如果没有找到数据，使用默认数据
-      const defaultData = repoPoisoningDataMap['repo-pytorch-002'];
-      setPoisoningData({
-        poisonings: defaultData.poisonings,
-        summary: defaultData.summary,
-      });
+    async function fetchPoisonData() {
+      try {
+        const data = await loadPoisonData(repo);
+        if (data) {
+          // 转换数据格式以匹配前端界面
+          // 实际投毒数据中没有详细的投毒项，所以使用空数组
+          const poisonings: PoisoningData[] = [];
+
+          // 根据检测结果计算统计摘要
+          const filesNum = parseInt(data.files_num) || 0;
+          const isMalicious = data.result === 'malicious';
+          const isSuspicious = data.result === 'suspicious';
+
+          const summary = {
+            tasks: filesNum,
+            malicious: isMalicious ? 1 : 0,
+            benign: data.result === 'benign' ? filesNum : 0,
+            suspicious: isSuspicious ? 1 : 0
+          };
+
+          setPoisoningData({
+            poisonings,
+            summary,
+          });
+
+          // 设置仓库名称
+          const repoNameMap: Record<string, string> = {
+            'repo-kafka-python': 'Kafka Python',
+            'repo-xiangtian-workbench': 'Xiangtian Workbench',
+            'repo-wumei-smart': 'Wumei Smart',
+            'repo-probabilistic-forecasts': 'Probabilistic Forecasts Attacks',
+            'repo-vue-django-bookshop': 'Vue Django BookShop',
+            'repo-pytorch': 'PyTorch',
+            'repo-tensorflow': 'TensorFlow',
+            'repo-deepseek-v3': 'DeepSeek V3',
+            'repo-llama': 'Meta Llama',
+            'repo-mistral-inference': 'Mistral Inference'
+          };
+          setRepoName(repoNameMap[repo] || repo);
+        } else {
+          // 如果加载失败，使用默认数据作为备用
+          const defaultData = repoPoisoningDataMap['repo-pytorch'];
+          setPoisoningData({
+            poisonings: defaultData.poisonings,
+            summary: defaultData.summary,
+          });
+          setRepoName(defaultData.name);
+        }
+      } catch (error) {
+        console.error('Error loading poison data:', error);
+        // 出错时使用默认数据
+        const defaultData = repoPoisoningDataMap['repo-pytorch'];
+        setPoisoningData({
+          poisonings: defaultData.poisonings,
+          summary: defaultData.summary,
+        });
+        setRepoName(defaultData.name);
+      }
     }
+
+    fetchPoisonData();
   }, [repo]);
+
+  const filteredPoisonings = poisoningData.poisonings.filter((poison) =>
+    poison.package.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    poison.detection.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredPoisonings.length / itemsPerPage);
+  const paginatedPoisonings = filteredPoisonings.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel) {
@@ -337,7 +400,7 @@ export default function PoisoningDetailPage({ params }: Props) {
             </button>
             <div>
               <h1 className="text-2xl font-bold text-gradient">
-                投毒风险检测 - {repoPoisoningDataMap[repo]?.name || repo}
+                投毒风险检测 - {repoName || repoPoisoningDataMap[repo]?.name || repo}
               </h1>
               <p className="text-sm text-[var(--muted-foreground)] mt-1">详细的投毒风险分析</p>
             </div>
@@ -375,6 +438,21 @@ export default function PoisoningDetailPage({ params }: Props) {
           </div>
         </div>
 
+        {/* Search and Filters */}
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="搜索包名或检测结果..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 bg-[var(--input)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Poisoning Details Table */}
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden">
           <div className="p-6 border-b border-[var(--border)]">
@@ -398,7 +476,7 @@ export default function PoisoningDetailPage({ params }: Props) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
-                {poisoningData.poisonings.map((poison, index) => (
+                {paginatedPoisonings.map((poison, index) => (
                   <tr key={index} className="hover:bg-[var(--input)] transition-colors">
                     <td className="px-4 py-3 text-sm font-medium">{poison.package}</td>
                     <td className="px-4 py-3 text-sm text-[var(--muted-foreground)]">{poison.version}</td>
@@ -436,8 +514,38 @@ export default function PoisoningDetailPage({ params }: Props) {
             </table>
           </div>
 
-          {poisoningData.poisonings.length === 0 && (
-            <div className="text-center py-12 text-[var(--muted-foreground)]">没有找到投毒风险数据</div>
+          {filteredPoisonings.length === 0 && (
+            <div className="text-center py-12 text-[var(--muted-foreground)]">
+              {searchQuery ? '没有找到匹配的投毒风险数据' : '没有找到投毒风险数据'}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {filteredPoisonings.length > 0 && (
+            <div className="p-4 border-t border-[var(--border)] flex justify-between items-center">
+              <div className="text-sm text-[var(--muted-foreground)]">
+                显示 {Math.min((currentPage - 1) * itemsPerPage + 1, filteredPoisonings.length)} - {Math.min(currentPage * itemsPerPage, filteredPoisonings.length)} 条，共 {filteredPoisonings.length} 条
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-sm border border-[var(--border)] rounded hover:bg-[var(--input)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  上一页
+                </button>
+                <span className="px-3 py-1 text-sm text-[var(--muted-foreground)]">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-sm border border-[var(--border)] rounded hover:bg-[var(--input)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  下一页
+                </button>
+              </div>
+            </div>
           )}
         </div>
 

@@ -1,34 +1,34 @@
 // 固定仓库的唯一标识符映射
 export const REPOSITORY_IDS: Record<string, string> = {
-  'https://github.com/meta-llama/llama': 'repo-llama-001',
-  'https://github.com/pytorch/pytorch': 'repo-pytorch-002',
-  'https://github.com/tensorflow/tensorflow': 'repo-tensorflow-003',
-  'https://github.com/facebook/react': 'repo-react-004',
-  'https://github.com/vuejs/vue': 'repo-vue-005',
-  'https://github.com/angular/angular': 'repo-angular-006',
-  'https://github.com/nodejs/node': 'repo-node-007',
-  'https://github.com/kubernetes/kubernetes': 'repo-kubernetes-008',
-  'https://github.com/docker/docker': 'repo-docker-009',
-  'https://github.com/microsoft/vscode': 'repo-vscode-010'
+  'https://github.com/dpkp/kafka-python': 'repo-kafka-python',
+  'https://github.com/FxRayHughes/xiangtian-workbench': 'repo-xiangtian-workbench',
+  'https://github.com/kerwincui/wumei-smart': 'repo-wumei-smart',
+  'https://github.com/eth-sri/probabilistic-forecasts-attacks': 'repo-probabilistic-forecasts',
+  'https://github.com/mtianyan/VueDjangoAntdProBookShop': 'repo-vue-django-bookshop',
+  'https://github.com/pytorch/pytorch': 'repo-pytorch',
+  'https://github.com/tensorflow/tensorflow': 'repo-tensorflow',
+  'https://github.com/deepseek-ai/DeepSeek-V3': 'repo-deepseek-v3',
+  'https://github.com/meta-llama/llama': 'repo-llama',
+  'https://github.com/mistralai/mistral-inference': 'repo-mistral-inference'
 };
 
 // 仓库名称映射
 export const REPOSITORY_NAMES: Record<string, string> = {
-  'https://github.com/meta-llama/llama': 'Meta Llama',
+  'https://github.com/dpkp/kafka-python': 'Kafka Python',
+  'https://github.com/FxRayHughes/xiangtian-workbench': 'Xiangtian Workbench',
+  'https://github.com/kerwincui/wumei-smart': 'Wumei Smart',
+  'https://github.com/eth-sri/probabilistic-forecasts-attacks': 'Probabilistic Forecasts Attacks',
+  'https://github.com/mtianyan/VueDjangoAntdProBookShop': 'Vue Django BookShop',
   'https://github.com/pytorch/pytorch': 'PyTorch',
   'https://github.com/tensorflow/tensorflow': 'TensorFlow',
-  'https://github.com/facebook/react': 'React',
-  'https://github.com/vuejs/vue': 'Vue.js',
-  'https://github.com/angular/angular': 'Angular',
-  'https://github.com/nodejs/node': 'Node.js',
-  'https://github.com/kubernetes/kubernetes': 'Kubernetes',
-  'https://github.com/docker/docker': 'Docker',
-  'https://github.com/microsoft/vscode': 'VS Code'
+  'https://github.com/deepseek-ai/DeepSeek-V3': 'DeepSeek V3',
+  'https://github.com/meta-llama/llama': 'Meta Llama',
+  'https://github.com/mistralai/mistral-inference': 'Mistral Inference'
 };
 
 // 根据URL获取仓库ID
 export function getRepositoryId(repoUrl: string): string {
-  return REPOSITORY_IDS[repoUrl] || `repo-custom-${Date.now()}`;
+  return REPOSITORY_IDS[repoUrl] || 'repo-pytorch'; // 默认使用PyTorch，避免自定义ID
 }
 
 // 根据URL获取仓库名称
