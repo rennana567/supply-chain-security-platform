@@ -550,22 +550,20 @@ export default function SBOMPage({ params }: Props) {
             setPieData(repoData.pieData);
             setRepoName(repoData.name);
           } else {
-            // 如果没有找到数据，使用默认数据
-            const defaultData = repoDataMap['repo-pytorch'];
-            setComponents(defaultData.components);
-            setSummary(defaultData.summary);
-            setPieData(defaultData.pieData);
-            setRepoName(defaultData.name);
+            // 如果没有找到数据，使用空数据
+            setComponents([]);
+            setSummary({ total: 0, packages: 0, managers: 0, licenses: 0 });
+            setPieData([]);
+            setRepoName(repo);
           }
         }
       } catch (error) {
         console.error('Error loading SBOM data:', error);
-        // 出错时使用模拟数据
-        const repoData = repoDataMap[repo] || repoDataMap['repo-pytorch'];
-        setComponents(repoData.components);
-        setSummary(repoData.summary);
-        setPieData(repoData.pieData);
-        setRepoName(repoData.name);
+        // 出错时使用空数据
+        setComponents([]);
+        setSummary({ total: 0, packages: 0, managers: 0, licenses: 0 });
+        setPieData([]);
+        setRepoName(repo);
       }
     };
 

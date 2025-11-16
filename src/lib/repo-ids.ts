@@ -28,7 +28,7 @@ export const REPOSITORY_NAMES: Record<string, string> = {
 
 // 根据URL获取仓库ID
 export function getRepositoryId(repoUrl: string): string {
-  return REPOSITORY_IDS[repoUrl] || 'repo-pytorch'; // 默认使用PyTorch，避免自定义ID
+  return REPOSITORY_IDS[repoUrl] || `repo-${Date.now()}`; // 生成唯一ID，避免默认使用PyTorch
 }
 
 // 根据URL获取仓库名称

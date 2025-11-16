@@ -77,11 +77,11 @@ const repoPoisoningDataMap: Record<string, {
         id: 'POI-004',
         package: 'forecast-helper',
         version: '0.5.2',
-        riskLevel: 'low',
-        detection: '可疑数据收集',
-        description: '检测到数据收集行为',
-        suspiciousPatterns: ['数据导出', '日志记录'],
-        confidence: 60
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - forecast-helper',
+        suspiciousPatterns: [],
+        confidence: 5
       },
       {
         id: 'POI-005',
@@ -89,12 +89,152 @@ const repoPoisoningDataMap: Record<string, {
         version: '1.0.1',
         riskLevel: 'safe',
         detection: '正常代码',
-        description: '未发现恶意行为',
+        description: '未发现恶意行为 - ml-utils',
+        suspiciousPatterns: [],
+        confidence: 8
+      },
+      {
+        id: 'POI-006',
+        package: 'numpy',
+        version: '1.24.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - numpy',
+        suspiciousPatterns: [],
+        confidence: 12
+      },
+      {
+        id: 'POI-007',
+        package: 'pandas',
+        version: '1.5.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - pandas',
+        suspiciousPatterns: [],
+        confidence: 15
+      },
+      {
+        id: 'POI-008',
+        package: 'tensorflow',
+        version: '2.11.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - tensorflow',
         suspiciousPatterns: [],
         confidence: 10
       },
+      {
+        id: 'POI-009',
+        package: 'matplotlib',
+        version: '3.6.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - matplotlib',
+        suspiciousPatterns: [],
+        confidence: 7
+      },
+      {
+        id: 'POI-010',
+        package: 'torch',
+        version: '1.13.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - torch',
+        suspiciousPatterns: [],
+        confidence: 9
+      },
+      {
+        id: 'POI-011',
+        package: 'scikit-learn',
+        version: '1.2.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - scikit-learn',
+        suspiciousPatterns: [],
+        confidence: 11
+      },
+      {
+        id: 'POI-012',
+        package: 'requests',
+        version: '2.28.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - requests',
+        suspiciousPatterns: [],
+        confidence: 6
+      },
+      {
+        id: 'POI-013',
+        package: 'urllib3',
+        version: '1.26.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - urllib3',
+        suspiciousPatterns: [],
+        confidence: 8
+      },
+      {
+        id: 'POI-014',
+        package: 'cryptography',
+        version: '3.4.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - cryptography',
+        suspiciousPatterns: [],
+        confidence: 13
+      },
+      {
+        id: 'POI-015',
+        package: 'Django',
+        version: '4.1.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - Django',
+        suspiciousPatterns: [],
+        confidence: 10
+      },
+      {
+        id: 'POI-016',
+        package: 'Vue',
+        version: '3.2.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - Vue',
+        suspiciousPatterns: [],
+        confidence: 7
+      },
+      {
+        id: 'POI-017',
+        package: 'flask',
+        version: '2.2.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - flask',
+        suspiciousPatterns: [],
+        confidence: 9
+      },
+      {
+        id: 'POI-018',
+        package: 'transformers',
+        version: '4.25.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - transformers',
+        suspiciousPatterns: [],
+        confidence: 11
+      },
+      {
+        id: 'POI-019',
+        package: 'keras',
+        version: '2.12.0',
+        riskLevel: 'safe',
+        detection: '正常代码',
+        description: '未发现恶意行为 - keras',
+        suspiciousPatterns: [],
+        confidence: 8
+      },
     ],
-    summary: { tasks: 12, malicious: 3, benign: 8, suspicious: 1 },
+    summary: { tasks: 16, malicious: 0, benign: 16, suspicious: 0 },
   },
   'repo-wumei-smart': {
     name: 'Wumei Smart',
@@ -263,6 +403,7 @@ export default function PoisoningDetailPage({ params }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [repoName, setRepoName] = useState<string>('');
+  const [selectedRiskLevel, setSelectedRiskLevel] = useState<string>('all');
   const itemsPerPage = 20;
 
   const resolvedParams = use(params);
@@ -272,21 +413,15 @@ export default function PoisoningDetailPage({ params }: Props) {
     async function fetchPoisonData() {
       try {
         const data = await loadPoisonData(repo);
-        if (data) {
-          // 转换数据格式以匹配前端界面
-          // 实际投毒数据中没有详细的投毒项，所以使用空数组
-          const poisonings: PoisoningData[] = [];
-
-          // 根据检测结果计算统计摘要
-          const filesNum = parseInt(data.files_num) || 0;
-          const isMalicious = data.result === 'malicious';
-          const isSuspicious = data.result === 'suspicious';
+        if (data && data.poisonings) {
+          // 使用真实数据中的投毒信息和统计信息
+          const poisonings: PoisoningData[] = data.poisonings;
 
           const summary = {
-            tasks: filesNum,
-            malicious: isMalicious ? 1 : 0,
-            benign: data.result === 'benign' ? filesNum : 0,
-            suspicious: isSuspicious ? 1 : 0
+            tasks: data.summary.total,
+            malicious: data.summary.malicious,
+            benign: data.summary.benign,
+            suspicious: data.summary.suspicious
           };
 
           setPoisoningData({
@@ -309,33 +444,34 @@ export default function PoisoningDetailPage({ params }: Props) {
           };
           setRepoName(repoNameMap[repo] || repo);
         } else {
-          // 如果加载失败，使用默认数据作为备用
-          const defaultData = repoPoisoningDataMap['repo-pytorch'];
+          // 如果加载失败，使用空数据作为备用
           setPoisoningData({
-            poisonings: defaultData.poisonings,
-            summary: defaultData.summary,
+            poisonings: [],
+            summary: { tasks: 0, malicious: 0, benign: 0, suspicious: 0 },
           });
-          setRepoName(defaultData.name);
+          setRepoName(repo);
         }
       } catch (error) {
         console.error('Error loading poison data:', error);
-        // 出错时使用默认数据
-        const defaultData = repoPoisoningDataMap['repo-pytorch'];
+        // 出错时使用空数据
         setPoisoningData({
-          poisonings: defaultData.poisonings,
-          summary: defaultData.summary,
+          poisonings: [],
+          summary: { tasks: 0, malicious: 0, benign: 0, suspicious: 0 },
         });
-        setRepoName(defaultData.name);
+        setRepoName(repo);
       }
     }
 
     fetchPoisonData();
   }, [repo]);
 
-  const filteredPoisonings = poisoningData.poisonings.filter((poison) =>
-    poison.package.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    poison.detection.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredPoisonings = poisoningData.poisonings.filter((poison) => {
+    const matchesSearch = poison.package.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         poison.detection.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (selectedRiskLevel === 'all') return matchesSearch;
+    return matchesSearch && poison.riskLevel === selectedRiskLevel;
+  });
 
   const totalPages = Math.ceil(filteredPoisonings.length / itemsPerPage);
   const paginatedPoisonings = filteredPoisonings.slice(
@@ -449,6 +585,19 @@ export default function PoisoningDetailPage({ params }: Props) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2 bg-[var(--input)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               />
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={selectedRiskLevel}
+                onChange={(e) => setSelectedRiskLevel(e.target.value)}
+                className="px-4 py-2 bg-[var(--input)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              >
+                <option value="all">所有风险等级</option>
+                <option value="high">高风险</option>
+                <option value="medium">中风险</option>
+                <option value="low">低风险</option>
+                <option value="safe">安全</option>
+              </select>
             </div>
           </div>
         </div>

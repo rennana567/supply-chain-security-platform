@@ -9,34 +9,7 @@ import { OverviewCard } from '@/components/OverviewCard';
 import { ModuleEntryCard } from '@/components/ModuleEntryCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { getRepositoryId, getRepositoryName } from '@/lib/repo-ids';
-
-// 简单的内存存储（临时解决方案）
-interface ScanData {
-  repoName?: string;
-  // 可以添加其他扫描数据字段
-}
-
-interface ScanResult {
-  id: string;
-  repoUrl: string;
-  repoName: string;
-  timestamp: number;
-  data: ScanData;
-}
-
-const scanResults = new Map<string, ScanResult>();
-
-function storeScanResult(repoUrl: string, data: ScanData): string {
-  const id = `scan-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  scanResults.set(id, {
-    id,
-    repoUrl,
-    repoName: data.repoName || repoUrl,
-    timestamp: Date.now(),
-    data
-  });
-  return id;
-}
+import { storeScanResult } from '@/lib/scan-storage';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -87,12 +60,13 @@ export default function Dashboard() {
       };
 
       // 存储扫描结果并获取扫描ID
-      const scanId = storeScanResult(repoUrl, scanData);
+      const repoId = getRepositoryId(repoUrl);
+      const scanId = storeScanResult(repoUrl, scanData, repoId);
 
       setScanResult({
         ...scanData,
         scanId,
-        repoId: getRepositoryId(repoUrl)
+        repoId
       });
 
       setIsScanning(false);

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ModuleEntryCard } from '@/components/ModuleEntryCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { loadLicenseData, loadVulnerabilityData, loadPoisonData } from '@/lib/data-loader';
 
 interface LicenseSummary {
   total: number;
@@ -24,6 +25,7 @@ interface PoisoningSummary {
   tasks: number;
   malicious: number;
   benign: number;
+  suspicious: number;
 }
 
 // 基于检测结果目录的mock数据映射
@@ -51,9 +53,10 @@ const repoDataMap: Record<string, {
       tasks: 5,
       malicious: 1,
       benign: 4,
+      suspicious: 0,
     },
   },
-  'repo-vue-django': {
+  'repo-vue-django-bookshop': {
     name: 'Vue Django Book Shop',
     licenseSummary: {
       total: 8,
@@ -71,6 +74,7 @@ const repoDataMap: Record<string, {
       tasks: 12,
       malicious: 2,
       benign: 10,
+      suspicious: 0,
     },
   },
   'repo-probabilistic-forecasts': {
@@ -82,15 +86,16 @@ const repoDataMap: Record<string, {
       undeclared: 1,
     },
     vulnerabilitySummary: {
-      total: 4,
-      high: 0,
-      medium: 2,
-      low: 2,
+      total: 17,
+      high: 4,
+      medium: 9,
+      low: 4,
     },
     poisoningSummary: {
-      tasks: 8,
+      tasks: 16,
       malicious: 0,
-      benign: 8,
+      benign: 16,
+      suspicious: 0,
     },
   },
   'repo-wumei-smart': {
@@ -111,6 +116,7 @@ const repoDataMap: Record<string, {
       tasks: 15,
       malicious: 3,
       benign: 12,
+      suspicious: 0,
     },
   },
   'repo-xiangtian-workbench': {
@@ -131,10 +137,11 @@ const repoDataMap: Record<string, {
       tasks: 10,
       malicious: 1,
       benign: 9,
+      suspicious: 0,
     },
   },
   // 补充其他5个repo的数据
-  'repo-pytorch-002': {
+  'repo-pytorch': {
     name: 'PyTorch',
     licenseSummary: {
       total: 25,
@@ -152,9 +159,10 @@ const repoDataMap: Record<string, {
       tasks: 20,
       malicious: 2,
       benign: 18,
+      suspicious: 0,
     },
   },
-  'repo-llama-001': {
+  'repo-llama': {
     name: 'Meta Llama',
     licenseSummary: {
       total: 12,
@@ -172,9 +180,10 @@ const repoDataMap: Record<string, {
       tasks: 8,
       malicious: 1,
       benign: 7,
+      suspicious: 0,
     },
   },
-  'repo-tensorflow-003': {
+  'repo-tensorflow': {
     name: 'TensorFlow',
     licenseSummary: {
       total: 30,
@@ -192,10 +201,11 @@ const repoDataMap: Record<string, {
       tasks: 25,
       malicious: 3,
       benign: 22,
+      suspicious: 0,
     },
   },
-  'repo-react-004': {
-    name: 'React',
+  'repo-deepseek-v3': {
+    name: 'DeepSeek V3',
     licenseSummary: {
       total: 14,
       compatible: 12,
@@ -212,10 +222,11 @@ const repoDataMap: Record<string, {
       tasks: 12,
       malicious: 1,
       benign: 11,
+      suspicious: 0,
     },
   },
-  'repo-nodejs-005': {
-    name: 'Node.js',
+  'repo-mistral-inference': {
+    name: 'Mistral Inference',
     licenseSummary: {
       total: 20,
       compatible: 17,
@@ -232,6 +243,7 @@ const repoDataMap: Record<string, {
       tasks: 18,
       malicious: 2,
       benign: 16,
+      suspicious: 0,
     },
   },
 };
@@ -261,29 +273,50 @@ export default function CodeRiskDetailPage({ params }: Props) {
       tasks: 0,
       malicious: 0,
       benign: 0,
+      suspicious: 0,
     },
   });
 
   const repo = params.repo as string;
 
   useEffect(() => {
-    // 根据repo参数获取数据
-    const repoData = repoDataMap[repo];
-    if (repoData) {
-      setScanResult({
-        licenseSummary: repoData.licenseSummary,
-        vulnerabilitySummary: repoData.vulnerabilitySummary,
-        poisoningSummary: repoData.poisoningSummary,
-      });
-    } else {
-      // 如果没有找到数据，使用默认数据
-      const defaultData = repoDataMap['repo-pytorch-002'];
-      setScanResult({
-        licenseSummary: defaultData.licenseSummary,
-        vulnerabilitySummary: defaultData.vulnerabilitySummary,
-        poisoningSummary: defaultData.poisoningSummary,
-      });
+    async function fetchData() {
+      try {
+        // 使用真实数据加载器获取数据
+        const [licenseData, vulnerabilityData, poisonData] = await Promise.all([
+          loadLicenseData(repo),
+          loadVulnerabilityData(repo),
+          loadPoisonData(repo)
+        ]);
+
+        // 设置扫描结果
+        setScanResult({
+          licenseSummary: licenseData?.summary || { total: 0, compatible: 0, conflict: 0, undeclared: 0 },
+          vulnerabilitySummary: vulnerabilityData?.summary ? {
+            total: vulnerabilityData.summary.total_vulnerabilities,
+            high: vulnerabilityData.summary.high,
+            medium: vulnerabilityData.summary.medium,
+            low: vulnerabilityData.summary.low
+          } : { total: 0, high: 0, medium: 0, low: 0 },
+          poisoningSummary: poisonData?.summary ? {
+            tasks: poisonData.summary.total,
+            malicious: poisonData.summary.malicious,
+            benign: poisonData.summary.benign,
+            suspicious: poisonData.summary.suspicious
+          } : { tasks: 0, malicious: 0, benign: 0, suspicious: 0 },
+        });
+      } catch (error) {
+        console.error('Error loading data:', error);
+        // 如果加载失败，使用空数据作为备用
+        setScanResult({
+          licenseSummary: { total: 0, compatible: 0, conflict: 0, undeclared: 0 },
+          vulnerabilitySummary: { total: 0, high: 0, medium: 0, low: 0 },
+          poisoningSummary: { tasks: 0, malicious: 0, benign: 0, suspicious: 0 },
+        });
+      }
     }
+
+    fetchData();
   }, [repo]);
 
   return (

@@ -89,12 +89,26 @@ export function RepoSearchInput({
       return [];
     }
 
+    // 确保PREDEFINED_REPOS数组存在且不为空
+    if (!PREDEFINED_REPOS || PREDEFINED_REPOS.length === 0) {
+      console.warn('PREDEFINED_REPOS is empty or undefined');
+      return [];
+    }
+
     const searchTerm = input.toLowerCase();
-    return PREDEFINED_REPOS.filter(repo =>
+    const filtered = PREDEFINED_REPOS.filter(repo =>
       repo.name.toLowerCase().includes(searchTerm) ||
       repo.fullName.toLowerCase().includes(searchTerm) ||
       repo.description.toLowerCase().includes(searchTerm)
     );
+
+    // 调试日志（开发环境）
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Search term:', searchTerm, 'Found:', filtered.length, 'repositories');
+      filtered.forEach(repo => console.log('-', repo.name));
+    }
+
+    return filtered;
   };
 
   // 处理输入变化
@@ -102,9 +116,15 @@ export function RepoSearchInput({
     const newValue = e.target.value;
     onChange(newValue);
 
-    const filtered = filterSuggestions(newValue);
-    setSuggestions(filtered);
-    setShowSuggestions(filtered.length > 0);
+    try {
+      const filtered = filterSuggestions(newValue);
+      setSuggestions(filtered);
+      setShowSuggestions(filtered.length > 0);
+    } catch (error) {
+      console.error('Error filtering suggestions:', error);
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
   };
 
   // 选择建议

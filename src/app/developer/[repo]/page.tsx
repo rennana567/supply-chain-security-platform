@@ -233,9 +233,8 @@ export default function DeveloperCommunityPage({ params }: Props) {
     if (repoData) {
       setProfile(repoData.profile);
     } else {
-      // 如果没有找到数据，使用默认数据
-      const defaultData = repoDataMap['repo-pytorch'];
-      setProfile(defaultData.profile);
+      // 如果没有找到数据，使用空数据
+      setProfile(null);
     }
 
     setLoading(false);

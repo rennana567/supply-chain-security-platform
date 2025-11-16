@@ -6,12 +6,8 @@ import Link from 'next/link';
 import { OverviewCard } from '@/components/OverviewCard';
 import { ModuleEntryCard } from '@/components/ModuleEntryCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
-// 临时的存储获取函数
-function getScanResult(scanId: string) {
-  // 这里应该从实际的存储系统获取数据
-  // 临时返回null，实际使用时应该从存储中获取
-  return null;
-}
+import { getRepositoryId } from '@/lib/repo-ids';
+import { getScanResult } from '@/lib/scan-storage';
 
 export default function ScanResultPage() {
   const params = useParams();
@@ -37,23 +33,32 @@ export default function ScanResultPage() {
 
   useEffect(() => {
     if (scanId) {
-      // 临时：显示示例数据，实际应该从存储中获取
-      const exampleData = {
-        repoName: 'PyTorch',
-        totalComponents: 164,
-        licensedComponents: 12,
-        vulnerabilities: 5,
-        riskLevel: '中清风险',
-        overallScore: 82,
-        sbomSummary: { total: 123, npm: 80, pip: 30, other: 13 },
-        vulnerabilitySummary: { high: 1, medium: 2, low: 2 },
-        contributors: 15,
-        scanId: scanId,
-        repoId: 'repo-pytorch-002',
-        timestamp: Date.now()
-      };
+      // 从存储中获取实际的扫描数据
+      const storedResult = getScanResult(scanId);
 
-      setScanResult(exampleData);
+      if (storedResult) {
+        // 使用存储的实际数据
+        const actualData = {
+          repoName: storedResult.repoName,
+          totalComponents: 164,
+          licensedComponents: 12,
+          vulnerabilities: 5,
+          riskLevel: '中清风险',
+          overallScore: 82,
+          sbomSummary: { total: 123, npm: 80, pip: 30, other: 13 },
+          vulnerabilitySummary: { high: 1, medium: 2, low: 2 },
+          contributors: 15,
+          scanId: scanId,
+          repoId: storedResult.repoId,
+          timestamp: storedResult.timestamp
+        };
+
+        setScanResult(actualData);
+      } else {
+        // 如果没有找到存储的数据，显示错误
+        setError('扫描结果不存在或已过期');
+      }
+
       setLoading(false);
     }
   }, [scanId]);

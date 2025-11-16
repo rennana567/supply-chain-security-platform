@@ -157,6 +157,7 @@ export default function LicenseDetailPage({ params }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [repoName, setRepoName] = useState<string>('');
+  const [selectedCompatibility, setSelectedCompatibility] = useState<string>('all');
   const itemsPerPage = 20;
 
   const resolvedParams = use(params);
@@ -186,33 +187,34 @@ export default function LicenseDetailPage({ params }: Props) {
           };
           setRepoName(repoNameMap[repo] || repo);
         } else {
-          // 如果加载失败，使用默认数据作为备用
-          const defaultData = repoLicenseDataMap['repo-pytorch'];
+          // 如果加载失败，使用空数据作为备用
           setLicenseData({
-            licenses: defaultData.licenses,
-            summary: defaultData.summary,
+            licenses: [],
+            summary: { total: 0, compatible: 0, conflict: 0, undeclared: 0 },
           });
-          setRepoName(defaultData.name);
+          setRepoName(repo);
         }
       } catch (error) {
         console.error('Error loading license data:', error);
-        // 出错时使用默认数据
-        const defaultData = repoLicenseDataMap['repo-pytorch'];
+        // 出错时使用空数据
         setLicenseData({
-          licenses: defaultData.licenses,
-          summary: defaultData.summary,
+          licenses: [],
+          summary: { total: 0, compatible: 0, conflict: 0, undeclared: 0 },
         });
-        setRepoName(defaultData.name);
+        setRepoName(repo);
       }
     }
 
     fetchLicenseData();
   }, [repo]);
 
-  const filteredLicenses = licenseData.licenses.filter((license) =>
-    license.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    license.license.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredLicenses = licenseData.licenses.filter((license) => {
+    const matchesSearch = license.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         license.license.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (selectedCompatibility === 'all') return matchesSearch;
+    return matchesSearch && license.compatibility === selectedCompatibility;
+  });
 
   const totalPages = Math.ceil(filteredLicenses.length / itemsPerPage);
   const paginatedLicenses = filteredLicenses.slice(
@@ -343,6 +345,18 @@ export default function LicenseDetailPage({ params }: Props) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2 bg-[var(--input)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               />
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={selectedCompatibility}
+                onChange={(e) => setSelectedCompatibility(e.target.value)}
+                className="px-4 py-2 bg-[var(--input)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              >
+                <option value="all">所有状态</option>
+                <option value="compatible">兼容</option>
+                <option value="conflict">冲突</option>
+                <option value="undeclared">未声明</option>
+              </select>
             </div>
           </div>
         </div>
