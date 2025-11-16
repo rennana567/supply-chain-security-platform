@@ -40,14 +40,14 @@ export default function ScanResultPage() {
         // 使用存储的实际数据
         const actualData = {
           repoName: storedResult.repoName,
-          totalComponents: 164,
-          licensedComponents: 12,
-          vulnerabilities: 5,
-          riskLevel: '中清风险',
-          overallScore: 82,
-          sbomSummary: { total: 123, npm: 80, pip: 30, other: 13 },
-          vulnerabilitySummary: { high: 1, medium: 2, low: 2 },
-          contributors: 15,
+          totalComponents: storedResult.data.totalComponents || 0,
+          licensedComponents: storedResult.data.licensedComponents || 0,
+          vulnerabilities: storedResult.data.vulnerabilities || 0,
+          riskLevel: storedResult.data.riskLevel || '未知',
+          overallScore: storedResult.data.overallScore || 0,
+          sbomSummary: storedResult.data.sbomSummary || { total: 0, npm: 0, pip: 0, other: 0 },
+          vulnerabilitySummary: storedResult.data.vulnerabilitySummary || { high: 0, medium: 0, low: 0 },
+          contributors: storedResult.data.contributors || 0,
           scanId: scanId,
           repoId: storedResult.repoId,
           timestamp: storedResult.timestamp

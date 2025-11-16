@@ -22,7 +22,8 @@
       "Bash(taskkill:*)",
       "Bash(findstr:*)",
       "Bash(powershell:*)",
-      "Bash(nul)"
+      "Bash(nul)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

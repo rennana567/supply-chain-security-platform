@@ -479,6 +479,41 @@ export default function PoisoningDetailPage({ params }: Props) {
     currentPage * itemsPerPage
   );
 
+  // 统一的分页页码计算（首尾页 + 当前页附近 + 省略号）
+  const getPageNumbers = () => {
+    const maxVisible = 7;
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const pages: (number | 'dots-left' | 'dots-right')[] = [];
+    const showLeft = currentPage - 1;
+    const showRight = currentPage + 1;
+
+    pages.push(1);
+
+    if (showLeft <= 2) {
+      for (let p = 2; p <= 4; p++) {
+        pages.push(p);
+      }
+      pages.push('dots-right');
+    } else if (showRight >= totalPages - 1) {
+      pages.push('dots-left');
+      for (let p = totalPages - 4; p <= totalPages - 1; p++) {
+        pages.push(p);
+      }
+    } else {
+      pages.push('dots-left');
+      pages.push(currentPage - 1);
+      pages.push(currentPage);
+      pages.push(currentPage + 1);
+      pages.push('dots-right');
+    }
+
+    pages.push(totalPages);
+    return pages;
+  };
+
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel) {
       case 'high':
@@ -675,7 +710,17 @@ export default function PoisoningDetailPage({ params }: Props) {
               <div className="text-sm text-[var(--muted-foreground)]">
                 显示 {Math.min((currentPage - 1) * itemsPerPage + 1, filteredPoisonings.length)} - {Math.min(currentPage * itemsPerPage, filteredPoisonings.length)} 条，共 {filteredPoisonings.length} 条
               </div>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                {/* 首页 */}
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-sm border border-[var(--border)] rounded hover:bg-[var(--input)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  首页
+                </button>
+
+                {/* 上一页 */}
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
@@ -683,15 +728,47 @@ export default function PoisoningDetailPage({ params }: Props) {
                 >
                   上一页
                 </button>
-                <span className="px-3 py-1 text-sm text-[var(--muted-foreground)]">
-                  {currentPage} / {totalPages}
-                </span>
+
+                {/* 中间页码 + 省略号 */}
+                {getPageNumbers().map((item, index) => {
+                  if (item === 'dots-left' || item === 'dots-right') {
+                    return (
+                      <span key={`${item}-${index}`} className="px-2 text-sm text-[var(--muted-foreground)]">
+                        ...
+                      </span>
+                    );
+                  }
+
+                  const page = item as number;
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 text-sm border border-[var(--border)] rounded ${
+                        currentPage === page ? 'bg-[var(--primary)] text-white' : 'hover:bg-[var(--input)]'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+
+                {/* 下一页 */}
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
                   className="px-3 py-1 text-sm border border-[var(--border)] rounded hover:bg-[var(--input)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   下一页
+                </button>
+
+                {/* 末页 */}
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-sm border border-[var(--border)] rounded hover:bg-[var(--input)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  末页
                 </button>
               </div>
             </div>

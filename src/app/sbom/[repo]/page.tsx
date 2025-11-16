@@ -582,6 +582,44 @@ export default function SBOMPage({ params }: Props) {
     currentPage * itemsPerPage
   );
 
+  // 计算要展示的分页页码（主流风格：首尾页 + 当前页附近 + 省略号）
+  const getPageNumbers = () => {
+    const maxVisible = 7; // 最多展示的按钮数量（包含首尾页和省略号）
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const pages: (number | 'dots-left' | 'dots-right')[] = [];
+    const showLeft = currentPage - 1;
+    const showRight = currentPage + 1;
+
+    pages.push(1);
+
+    if (showLeft <= 2) {
+      // 当前页靠近左边，直接展示前几页
+      for (let p = 2; p <= 4; p++) {
+        pages.push(p);
+      }
+      pages.push('dots-right');
+    } else if (showRight >= totalPages - 1) {
+      // 当前页靠近右边，展示后几页
+      pages.push('dots-left');
+      for (let p = totalPages - 4; p <= totalPages - 1; p++) {
+        pages.push(p);
+      }
+    } else {
+      // 当前页在中间，左右各展示一页
+      pages.push('dots-left');
+      pages.push(currentPage - 1);
+      pages.push(currentPage);
+      pages.push(currentPage + 1);
+      pages.push('dots-right');
+    }
+
+    pages.push(totalPages);
+    return pages;
+  };
+
   const exportData = (format: 'csv' | 'json') => {
     if (format === 'csv') {
       const csv = [
@@ -807,6 +845,16 @@ export default function SBOMPage({ params }: Props) {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 p-4 border-t border-[#1e293b]">
+              {/* 首页 */}
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded bg-[#0a0e1a] text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                首页
+              </button>
+
+              {/* 上一页 */}
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
@@ -814,25 +862,49 @@ export default function SBOMPage({ params }: Props) {
               >
                 上一页
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-1 rounded ${
-                    currentPage === page
-                      ? 'bg-[#5b8def] text-white'
-                      : 'bg-[#0a0e1a] text-gray-400 hover:text-white'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
+
+              {/* 中间页码 + 省略号 */}
+              {getPageNumbers().map((item, index) => {
+                if (item === 'dots-left' || item === 'dots-right') {
+                  return (
+                    <span key={`${item}-${index}`} className="px-2 text-gray-500">
+                      ...
+                    </span>
+                  );
+                }
+
+                const page = item as number;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1 rounded ${
+                      currentPage === page
+                        ? 'bg-[#5b8def] text-white'
+                        : 'bg-[#0a0e1a] text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              {/* 下一页 */}
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 rounded bg-[#0a0e1a] text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 下一页
+              </button>
+
+              {/* 末页 */}
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded bg-[#0a0e1a] text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                末页
               </button>
             </div>
           )}

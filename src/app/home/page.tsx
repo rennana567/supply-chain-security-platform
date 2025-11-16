@@ -10,6 +10,7 @@ import { ModuleEntryCard } from '@/components/ModuleEntryCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { getRepositoryId, getRepositoryName } from '@/lib/repo-ids';
 import { storeScanResult } from '@/lib/scan-storage';
+import { getSBOMData } from '@/lib/sbom-parser';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -40,27 +41,73 @@ export default function Dashboard() {
     setInputError('');
     setIsScanning(true);
 
-    // TODO: 替换为真实 API 调用
-    // 示例：
-    // const result = await api.scan({ repoUrl });
-    // setScanResult(result);
+    try {
+      // 获取仓库ID和名称
+      const repoId = getRepositoryId(repoUrl);
+      const repoName = getRepositoryName(repoUrl);
 
-    // 模拟扫描过程
-    setTimeout(() => {
-      const scanData = {
-        repoName: getRepositoryName(repoUrl),
-        totalComponents: 164,
-        licensedComponents: 12,
-        vulnerabilities: 5,
-        riskLevel: '中清风险',
-        overallScore: 82,
-        sbomSummary: { total: 123, npm: 80, pip: 30, other: 13 },
-        vulnerabilitySummary: { high: 1, medium: 2, low: 2 },
-        contributors: 15,
+      // 尝试获取真实的SBOM数据
+      const sbomData = await getSBOMData(repoId);
+
+      // 基于真实 SBOM 结果构建首页概览数据
+      let scanData: {
+        repoName: string;
+        totalComponents: number;
+        licensedComponents: number;
+        vulnerabilities: number;
+        riskLevel: string;
+        overallScore: number;
+        sbomSummary: { total: number; npm: number; pip: number; other: number };
+        vulnerabilitySummary: { high: number; medium: number; low: number };
+        contributors: number;
       };
 
+      if (sbomData) {
+        const npmCount = sbomData.pieData.find(item => item.name === 'npm')?.value || 0;
+        const pipCount = sbomData.pieData.find(item => item.name === 'pip')?.value || 0;
+        // 其余所有包管理器合并为 other，保持首页饼图和详情页用的是同一份数据
+        const otherCount =
+          sbomData.summary.total - (npmCount + pipCount) >= 0
+            ? sbomData.summary.total - (npmCount + pipCount)
+            : 0;
+
+        scanData = {
+          repoName,
+          totalComponents: sbomData.summary.total,
+          licensedComponents: 12,
+          vulnerabilities: 5,
+          riskLevel: '中清风险',
+          overallScore: 82,
+          sbomSummary: {
+            total: sbomData.summary.total,
+            npm: npmCount,
+            pip: pipCount,
+            other: otherCount,
+          },
+          vulnerabilitySummary: { high: 1, medium: 2, low: 2 },
+          contributors: 15,
+        };
+      } else {
+        // 如果暂时拿不到 SBOM 数据，退回到示例数据
+        scanData = {
+          repoName,
+          totalComponents: 164,
+          licensedComponents: 12,
+          vulnerabilities: 5,
+          riskLevel: '中清风险',
+          overallScore: 82,
+          sbomSummary: {
+            total: 123,
+            npm: 80,
+            pip: 30,
+            other: 13,
+          },
+          vulnerabilitySummary: { high: 1, medium: 2, low: 2 },
+          contributors: 15,
+        };
+      }
+
       // 存储扫描结果并获取扫描ID
-      const repoId = getRepositoryId(repoUrl);
       const scanId = storeScanResult(repoUrl, scanData, repoId);
 
       setScanResult({
@@ -73,7 +120,11 @@ export default function Dashboard() {
 
       // 导航到扫描结果页面
       router.push(`/scan/${scanId}`);
-    }, 2000);
+    } catch (error) {
+      console.error('扫描过程中出错:', error);
+      setIsScanning(false);
+      setInputError('扫描失败，请重试');
+    }
   };
 
   return (

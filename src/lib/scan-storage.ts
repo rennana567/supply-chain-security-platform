@@ -3,7 +3,14 @@ import { getRepositoryId } from './repo-ids';
 
 interface ScanData {
   repoName?: string;
-  // 可以添加其他扫描数据字段
+  totalComponents?: number;
+  licensedComponents?: number;
+  vulnerabilities?: number;
+  riskLevel?: string;
+  overallScore?: number;
+  sbomSummary?: { total: number; npm: number; pip: number; other: number };
+  vulnerabilitySummary?: { high: number; medium: number; low: number };
+  contributors?: number;
 }
 
 export interface ScanResult {
