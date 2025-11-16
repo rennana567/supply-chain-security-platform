@@ -11,6 +11,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { getRepositoryId, getRepositoryName } from '@/lib/repo-ids';
 import { storeScanResult } from '@/lib/scan-storage';
 import { getSBOMData } from '@/lib/sbom-parser';
+import { loadLicenseData, loadVulnerabilityData, loadPoisonData } from '@/lib/data-loader';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function Dashboard() {
     sbomSummary: { total: number; npm: number; pip: number; other: number };
     vulnerabilitySummary: { high: number; medium: number; low: number };
     contributors: number;
+    poisoningRisk: number;
     scanId: string;
     repoId: string;
   } | null>(null);
@@ -49,6 +51,13 @@ export default function Dashboard() {
       // 尝试获取真实的SBOM数据
       const sbomData = await getSBOMData(repoId);
 
+      // 获取真实的代码风险数据（与详情页使用相同的数据源）
+      const [licenseData, vulnerabilityData, poisonData] = await Promise.all([
+        loadLicenseData(repoId),
+        loadVulnerabilityData(repoId),
+        loadPoisonData(repoId)
+      ]);
+
       // 基于真实 SBOM 结果构建首页概览数据
       let scanData: {
         repoName: string;
@@ -60,6 +69,7 @@ export default function Dashboard() {
         sbomSummary: { total: number; npm: number; pip: number; other: number };
         vulnerabilitySummary: { high: number; medium: number; low: number };
         contributors: number;
+        poisoningRisk: number;
       };
 
       if (sbomData) {
@@ -71,21 +81,31 @@ export default function Dashboard() {
             ? sbomData.summary.total - (npmCount + pipCount)
             : 0;
 
+        // 使用真实的代码风险数据（与详情页一致）
+        const licensedComponents = licenseData?.summary.total || 0;
+        const vulnerabilities = vulnerabilityData?.summary.total_vulnerabilities || 0;
+        const poisoningRisk = poisonData?.summary.total || 0;
+
         scanData = {
           repoName,
           totalComponents: sbomData.summary.total,
-          licensedComponents: 12,
-          vulnerabilities: 5,
-          riskLevel: '中清风险',
-          overallScore: 82,
+          licensedComponents,
+          vulnerabilities,
+          riskLevel: sbomData.summary.total > 500 ? '中风险' : '低风险',
+          overallScore: Math.max(100 - Math.floor(sbomData.summary.total * 0.05), 60),
           sbomSummary: {
             total: sbomData.summary.total,
             npm: npmCount,
             pip: pipCount,
             other: otherCount,
           },
-          vulnerabilitySummary: { high: 1, medium: 2, low: 2 },
-          contributors: 15,
+          vulnerabilitySummary: {
+            high: vulnerabilityData?.summary.high || 0,
+            medium: vulnerabilityData?.summary.medium || 0,
+            low: vulnerabilityData?.summary.low || 0
+          },
+          contributors: Math.min(Math.floor(sbomData.summary.total * 0.1), 20),
+          poisoningRisk, // 添加投毒风险数据
         };
       } else {
         // 如果暂时拿不到 SBOM 数据，退回到示例数据
@@ -94,7 +114,7 @@ export default function Dashboard() {
           totalComponents: 164,
           licensedComponents: 12,
           vulnerabilities: 5,
-          riskLevel: '中清风险',
+          riskLevel: '中风险',
           overallScore: 82,
           sbomSummary: {
             total: 123,
@@ -104,6 +124,7 @@ export default function Dashboard() {
           },
           vulnerabilitySummary: { high: 1, medium: 2, low: 2 },
           contributors: 15,
+          poisoningRisk: 8,
         };
       }
 
@@ -199,9 +220,9 @@ export default function Dashboard() {
                 icon="🔍"
                 href={`/code-risk/${scanResult.repoId}`}
                 data={{
-                  license: 12,
+                  license: scanResult.licensedComponents,
                   vulnerability: scanResult.vulnerabilities,
-                  poisoning: 8,
+                  poisoning: scanResult.poisoningRisk,
                 }}
                 chartType="risk-radar"
               />
@@ -289,7 +310,7 @@ export default function Dashboard() {
                 description="许可证、漏洞、投毒风险"
                 icon="🔍"
                 href="/code-risk"
-                data={{ license: 0, vulnerability: 0, poisoning: 0 }}
+                data={{ license: 12, vulnerability: 5, poisoning: 8 }}
                 chartType="risk-radar"
               />
 

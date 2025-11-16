@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { RiskRadarChart } from '@/components/RiskRadarChart';
+import { SimpleRiskChart } from '@/components/SimpleRiskChart';
 import PieChart3D from '@/components/PieChart3D';
 import BarChart3D from '@/components/BarChart3D';
 
@@ -190,7 +191,7 @@ export function ModuleEntryCard({ title, description, icon, href, data, chartTyp
         };
         return (
           <div className="flex justify-center items-center">
-            <RiskRadarChart data={riskData} width={240} height={160} />
+            <SimpleRiskChart data={riskData} width={240} height={160} />
           </div>
         );
 
